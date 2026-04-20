@@ -13,7 +13,7 @@ The application allows users to easily find and request services such as:
 * Home maintenance
 * Other local services
 
-The goal is to improve convenience, سرعة الوصول للخدمات، ودعم مقدمي الخدمات داخل الحي.
+The goal is to improve convenience, faster access to services, and support local workers within the neighborhood.
 
 ---
 
@@ -21,21 +21,21 @@ The goal is to improve convenience, سرعة الوصول للخدمات، ود�
 
 ### 🔹 Resident (User)
 
-* As a user, I want to create an account and login securely
-* As a user, I want to view nearby available workers
-* As a user, I want to request a service بسهولة
-* As a user, I want to see worker ratings قبل الطلب
+* Create an account and login
+* View nearby available workers
+* Request services easily
+* View worker ratings before requesting
 
 ### 🔹 Service Provider (Worker)
 
-* As a worker, I want to register and list my services
-* As a worker, I want to update availability (online/offline)
-* As a worker, I want to receive service requests
+* Register and list services
+* Update availability (online/offline)
+* Receive and respond to service requests
 
 ### 🔹 Admin
 
-* As an admin, I want to manage users and workers
-* As an admin, I want to monitor service quality
+* Manage users and workers
+* Monitor services and content
 
 ---
 
@@ -54,7 +54,7 @@ Main Screens:
 
 ## 🏗️ 4. System Architecture
 
-Architecture Style: Client-Server Architecture
+Architecture Style: Client-Server
 
 ### Components:
 
@@ -66,20 +66,30 @@ Architecture Style: Client-Server Architecture
 
 User → Frontend → Backend API → Database → Response → Frontend
 
+### Architecture Diagram
+
+```
+Client (React)
+     ↓
+API Server (Node.js / Express)
+     ↓
+Database (MongoDB)
+```
+
 ---
 
 ## 🧩 5. Components & System Structure
 
 ### Backend Structure:
 
-* **Controllers** → Handle requests
-* **Routes** → API endpoints
-* **Models** → Database schemas
-* **Services** → Business logic
+* Controllers → Handle requests
+* Routes → API endpoints
+* Models → Database schemas
+* Services → Business logic
 
 ### Main Modules:
 
-* Authentication Module
+* Authentication
 * User Management
 * Service Management
 * Request Handling
@@ -103,7 +113,7 @@ User → Frontend → Backend API → Database → Response → Frontend
 * id
 * title
 * description
-* category (cleaning, maintenance, etc.)
+* category
 * workerId
 
 #### Requests
@@ -122,18 +132,27 @@ User → Frontend → Backend API → Database → Response → Frontend
 * rating
 * comment
 
+### ER Diagram
+
+```
+User ────< Request >──── Worker
+   \                     /
+    \                   /
+     └──── Review ─────┘
+
+Service ────< Request
+```
+
 ---
 
-## 🔄 7. Sequence Diagram (Service Request)
+## 🔄 7. Sequence Diagram
 
-1. User selects a service
-2. App shows nearby available workers
-3. User sends request
-4. Backend stores request
-5. Worker receives notification
-6. Worker accepts/rejects
-7. Status updated in database
-8. User sees result
+### Service Request Flow
+
+User → Frontend → Backend → Database
+Backend → Worker (notification)
+Worker → Backend (accept/reject)
+Backend → User (response)
 
 ---
 
@@ -143,22 +162,22 @@ User → Frontend → Backend API → Database → Response → Frontend
 
 /api/v1
 
-### 🔹 Auth
+### Auth
 
 * POST /auth/register
 * POST /auth/login
 
-### 🔹 Users
+### Users
 
 * GET /users
 * GET /users/:id
 
-### 🔹 Services
+### Services
 
 * GET /services
 * POST /services
 
-### 🔹 Requests
+### Requests
 
 * POST /requests
 * GET /requests/:id
@@ -166,75 +185,86 @@ User → Frontend → Backend API → Database → Response → Frontend
 
 ---
 
-## 🔧 9. SCM Strategy (Git)
+## 🔧 9. SCM Strategy (Task 5)
 
-### Branching Strategy:
+### Branching Strategy
 
 * main → production
 * develop → development
-* feature/* → new features
+* feature/* → feature development
 
-### Workflow:
+### Workflow
 
-1. Create feature branch
-2. Commit regularly
+1. Create feature branch from develop
+2. Commit regularly (small commits)
 3. Push to GitHub
 4. Open Pull Request
-5. Code Review
-6. Merge to develop → main
+5. Code review
+6. Merge into develop
+7. Merge develop → main when stable
 
 ---
 
-## 🧪 10. QA Strategy
+## 🧪 10. QA Strategy (Task 5)
 
-### Testing Types:
+### Testing Types
 
 * Unit Testing (Jest)
-* API Testing (Postman)
+* Integration Testing
+* API Testing (Postman / Supertest)
 * Manual Testing
 
-### Key Test Cases:
+### Key Test Cases
 
-* User login/logout
+* User authentication
 * Service creation
-* Request flow (send / accept / complete)
+* Request lifecycle (send / accept / complete)
 * Error handling
 
 ---
 
-## ⚙️ 11. Technical Decisions
+## 🚀 11. Deployment Pipeline
+
+### Staging
+
+* Code from develop is deployed for testing
+
+### Production
+
+* Code from main is deployed after approval
+
+---
+
+## ⚙️ 12. Technical Decisions
 
 ### Node.js + Express
 
 * Fast and scalable backend
-* Suitable for real-time requests
 
 ### MongoDB
 
 * Flexible schema for dynamic services
-* Easy integration with Node.js
 
 ### React
 
-* Fast and responsive UI
-* Component-based architecture
+* Fast UI and reusable components
 
 ---
 
-## 📌 12. Technical Justifications
+## 📌 13. Technical Justifications
 
-* Real-time service matching requires a lightweight and fast backend
-* NoSQL database fits dynamic service categories
-* Modular backend structure improves scalability and maintainability
+* Real-time service matching requires a lightweight backend
+* NoSQL database supports flexible data structure
+* Modular architecture improves scalability
 
 ---
 
-## 🚀 13. Future Improvements
+## 🚀 14. Future Improvements
 
-* Real-time tracking (GPS)
-* In-app chat between user and worker
+* GPS tracking for workers
+* Real-time notifications
+* In-app chat
 * Payment integration
-* Rating and recommendation system
 
 ---
 
