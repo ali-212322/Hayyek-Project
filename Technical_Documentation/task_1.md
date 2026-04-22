@@ -397,7 +397,7 @@ Stores:
 
 ---
 
-# 🛠️ Recommended Tools by Layer
+# 🛠️  Tools  
 
 ## Frontend Tools
 - React.js
