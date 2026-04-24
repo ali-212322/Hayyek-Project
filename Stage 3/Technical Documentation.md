@@ -5,11 +5,12 @@
 
 | Field | Value |
 |---|---|
-| **Project Name** | Hayyek |
+| **Project Name** | Hayyak |
 | **Project Type** | Multi-interface Digital Platform (Web + Mobile) |
 | **Stage** | Stage 3 — Technical Documentation |
-| **Document Version** | 1.0 |
+| **Document Version** | 1.1 (MySQL Edition) |
 | **Date** | April 2026 |
+| **Database** | MySQL 8.0+ with InnoDB Engine |
 
 ---
 
@@ -36,7 +37,7 @@
 | **Providers Web Portal** | Service Providers | React (SPA) |
 | **Admin Dashboard** | Platform Administrators | React (SPA) |
 
-All three interfaces connect to a **unified Backend** built on Django REST Framework with a PostgreSQL database.
+All three interfaces connect to a **unified Backend** built on Django REST Framework with a **MySQL 8.0** database using the **InnoDB** storage engine for full ACID compliance and foreign key support.
 
 ---
 
@@ -137,8 +138,8 @@ The system follows a **three-tier Client-Server architecture** with a unified Ba
 
 #### Presentation Layer
 - **Mobile App (React Native):** iOS/Android app for residents
-- **Providers Portal (React ):** web interface for service providers
-- **Admin Dashboard (React ):** admin control panel
+- **Providers Portal (React SPA):** web interface for service providers
+- **Admin Dashboard (React SPA):** admin control panel
 
 #### API Gateway Layer
 - **Nginx** as Reverse Proxy and Load Balancer
@@ -151,7 +152,7 @@ The system follows a **three-tier Client-Server architecture** with a unified Ba
 - **Django Channels:** WebSocket support for real-time updates (order tracking)
 
 #### Data Layer
-- **MySQL:** primary relational database
+- **MySQL 8.0 (InnoDB):** primary relational database — full ACID support, foreign key constraints, row-level locking
 - **Redis:** caching + task queue
 - **AWS S3:** storage for images and documents
 
@@ -167,13 +168,35 @@ The system follows a **three-tier Client-Server architecture** with a unified Ba
 User (App/Web)
     → Nginx (SSL + Load Balancer)
     → Django API (Authentication + Business Logic)
-    → MySQL (Persist Data)
+    → MySQL 8.0 / InnoDB (Persist Data)
     → Redis Cache (Fast Retrieval)
     → Response back to User
 
 Background Tasks:
 Django → Celery Queue (Redis) → Worker → External APIs (FCM/SMS/Payment)
 ```
+
+### 3.4 Django Settings for MySQL
+
+```python
+# settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'hayyak_db',
+        'USER': 'hayyak_user',
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
+```
+
+> **Required package:** `pip install mysqlclient` (or `PyMySQL` as alternative)
 
 ---
 
@@ -237,198 +260,387 @@ src/
 
 ![ERD](./diagrams/03_erd.svg)
 
-### 4.5 Database Schema (MySQL)
+### 4.5 MySQL Syntax Conversion Reference
 
-#### `users` table
+The following table summarizes all PostgreSQL-to-MySQL syntax changes applied throughout the schema:
+
+| PostgreSQL | MySQL 8.0 Equivalent | Notes |
+|---|---|---|
+| `BIGSERIAL PRIMARY KEY` | `BIGINT AUTO_INCREMENT PRIMARY KEY` | Auto-increment PK |
+| `BOOLEAN DEFAULT TRUE` | `TINYINT(1) DEFAULT 1` | Django maps BooleanField to TINYINT(1) |
+| `BOOLEAN DEFAULT FALSE` | `TINYINT(1) DEFAULT 0` | |
+| `TIMESTAMP DEFAULT NOW()` | `DATETIME DEFAULT CURRENT_TIMESTAMP` | MySQL uses DATETIME for timezone-aware columns |
+| `CHECK (col IN (...))` | `ENUM(...)` | Native enum type in MySQL; more efficient |
+| `CHECK (price >= 0)` | `CONSTRAINT chk_price CHECK (price >= 0)` | MySQL 8.0+ enforces CHECK constraints |
+| `CHECK (rating BETWEEN 1 AND 5)` | `CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5)` | MySQL 8.0+ |
+| `TEXT` (unlimited) | `TEXT` | Same — MySQL TEXT holds up to 65,535 bytes |
+| `REFERENCES t(col)` | `REFERENCES t(col)` | Identical; InnoDB enforces FK constraints |
+| `CREATE INDEX ... ON t(col DESC)` | `CREATE INDEX ... ON t(col DESC)` | Supported in MySQL 8.0+ |
+| `SERIAL` | `INT AUTO_INCREMENT` | For INT-sized PKs |
+| `VARCHAR(n)` | `VARCHAR(n) CHARACTER SET utf8mb4` | Explicit charset for Arabic + emoji support |
+
+> **Important:** Always use `ENGINE=InnoDB` and `CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci` for all tables to ensure Arabic text support, emoji handling, and foreign key enforcement.
+
+---
+
+### 4.6 Database Schema (MySQL 8.0)
+
+#### Global Settings
 ```sql
-CREATE TABLE users (
-    id              BIGSERIAL PRIMARY KEY,
-    phone           VARCHAR(15) UNIQUE NOT NULL,
-    email           VARCHAR(255) UNIQUE,
-    password_hash   VARCHAR(255) NOT NULL,
-    full_name       VARCHAR(100) NOT NULL,
-    user_type       VARCHAR(20) NOT NULL CHECK (user_type IN ('resident','provider','admin')),
-    is_active       BOOLEAN DEFAULT TRUE,
-    is_verified     BOOLEAN DEFAULT FALSE,
-    created_at      TIMESTAMP DEFAULT NOW(),
-    updated_at      TIMESTAMP DEFAULT NOW()
-);
-CREATE INDEX idx_users_phone ON users(phone);
-CREATE INDEX idx_users_type ON users(user_type);
+-- Run once before creating tables
+CREATE DATABASE hayyak_db
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE hayyak_db;
+
+-- Enforce strict mode for data integrity
+SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO';
 ```
+
+---
 
 #### `neighborhoods` table
 ```sql
 CREATE TABLE neighborhoods (
-    id              BIGSERIAL PRIMARY KEY,
-    name_ar         VARCHAR(100) NOT NULL,
-    name_en         VARCHAR(100),
-    city            VARCHAR(100) NOT NULL,
-    center_lat      DECIMAL(10,7) NOT NULL,
-    center_lng      DECIMAL(10,7) NOT NULL,
-    radius_km       DECIMAL(5,2) DEFAULT 3.0,
-    is_active       BOOLEAN DEFAULT TRUE
-);
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name_ar     VARCHAR(100) NOT NULL,
+    name_en     VARCHAR(100),
+    city        VARCHAR(100) NOT NULL,
+    center_lat  DECIMAL(10,7) NOT NULL,
+    center_lng  DECIMAL(10,7) NOT NULL,
+    radius_km   DECIMAL(5,2) DEFAULT 3.0,
+    is_active   TINYINT(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+
+---
+
+#### `users` table
+```sql
+CREATE TABLE users (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    phone         VARCHAR(15) NOT NULL,
+    email         VARCHAR(255),
+    password_hash VARCHAR(255) NOT NULL,
+    full_name     VARCHAR(100) NOT NULL,
+    user_type     ENUM('resident','provider','admin') NOT NULL,
+    is_active     TINYINT(1) DEFAULT 1,
+    is_verified   TINYINT(1) DEFAULT 0,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uq_users_phone UNIQUE (phone),
+    CONSTRAINT uq_users_email UNIQUE (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_users_type ON users(user_type);
+```
+
+> **Django ORM note:** `user_type` maps to `CharField(choices=...)` — Django validates choices at the application layer. For MySQL ENUM enforcement at the DB layer, define the column as shown above.
+
+---
 
 #### `resident_profiles` table
 ```sql
 CREATE TABLE resident_profiles (
-    user_id         BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    neighborhood_id BIGINT REFERENCES neighborhoods(id),
+    user_id         BIGINT PRIMARY KEY,
+    neighborhood_id BIGINT,
     default_address TEXT,
     default_lat     DECIMAL(10,7),
-    default_lng     DECIMAL(10,7)
-);
+    default_lng     DECIMAL(10,7),
+    CONSTRAINT fk_rp_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rp_neighborhood
+        FOREIGN KEY (neighborhood_id) REFERENCES neighborhoods(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+
+---
 
 #### `provider_profiles` table
 ```sql
 CREATE TABLE provider_profiles (
-    user_id             BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    user_id             BIGINT PRIMARY KEY,
     business_name       VARCHAR(150) NOT NULL,
     commercial_register VARCHAR(50),
     id_document_url     VARCHAR(500),
     logo_url            VARCHAR(500),
     description         TEXT,
-    neighborhood_id     BIGINT REFERENCES neighborhoods(id),
+    neighborhood_id     BIGINT,
     location_lat        DECIMAL(10,7),
     location_lng        DECIMAL(10,7),
-    status              VARCHAR(20) DEFAULT 'pending'
-                        CHECK (status IN ('pending','approved','rejected','suspended')),
+    status              ENUM('pending','approved','rejected','suspended') DEFAULT 'pending',
     rejection_reason    TEXT,
-    is_available        BOOLEAN DEFAULT TRUE,
+    is_available        TINYINT(1) DEFAULT 1,
     avg_rating          DECIMAL(3,2) DEFAULT 0.0,
     total_reviews       INT DEFAULT 0,
-    approved_at         TIMESTAMP,
-    created_at          TIMESTAMP DEFAULT NOW()
-);
-CREATE INDEX idx_providers_status ON provider_profiles(status);
+    approved_at         DATETIME,
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pp_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pp_neighborhood
+        FOREIGN KEY (neighborhood_id) REFERENCES neighborhoods(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_providers_status       ON provider_profiles(status);
 CREATE INDEX idx_providers_neighborhood ON provider_profiles(neighborhood_id);
+CREATE INDEX idx_providers_available    ON provider_profiles(is_available);
 ```
+
+---
 
 #### `service_categories` table
 ```sql
 CREATE TABLE service_categories (
-    id          BIGSERIAL PRIMARY KEY,
-    name_ar     VARCHAR(100) NOT NULL,
-    name_en     VARCHAR(100),
-    icon_url    VARCHAR(500),
-    is_active   BOOLEAN DEFAULT TRUE
-);
--- Initial categories: Maintenance, Cleaning, Groceries, Restaurants, Laundry, Delivery
+    id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name_ar   VARCHAR(100) NOT NULL,
+    name_en   VARCHAR(100),
+    icon_url  VARCHAR(500),
+    is_active TINYINT(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Initial seed data
+INSERT INTO service_categories (name_ar, name_en) VALUES
+    ('صيانة',  'Maintenance'),
+    ('نظافة',  'Cleaning'),
+    ('بقالة',  'Groceries'),
+    ('مطاعم',  'Restaurants'),
+    ('غسيل',   'Laundry'),
+    ('توصيل',  'Delivery');
 ```
+
+---
 
 #### `services` table
 ```sql
 CREATE TABLE services (
-    id              BIGSERIAL PRIMARY KEY,
-    provider_id     BIGINT NOT NULL REFERENCES provider_profiles(user_id) ON DELETE CASCADE,
-    category_id     BIGINT NOT NULL REFERENCES service_categories(id),
-    title           VARCHAR(200) NOT NULL,
-    description     TEXT,
-    price           DECIMAL(10,2) NOT NULL CHECK (price >= 0),
-    price_type      VARCHAR(20) DEFAULT 'fixed' CHECK (price_type IN ('fixed','hourly','per_unit')),
-    estimated_time  INT, -- in minutes
-    is_available    BOOLEAN DEFAULT TRUE,
-    created_at      TIMESTAMP DEFAULT NOW()
-);
-CREATE INDEX idx_services_provider ON services(provider_id);
-CREATE INDEX idx_services_category ON services(category_id);
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    provider_id    BIGINT NOT NULL,
+    category_id    BIGINT NOT NULL,
+    title          VARCHAR(200) NOT NULL,
+    description    TEXT,
+    price          DECIMAL(10,2) NOT NULL,
+    price_type     ENUM('fixed','hourly','per_unit') DEFAULT 'fixed',
+    estimated_time INT,                          -- in minutes
+    is_available   TINYINT(1) DEFAULT 1,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_price CHECK (price >= 0),
+    CONSTRAINT fk_svc_provider
+        FOREIGN KEY (provider_id) REFERENCES provider_profiles(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_svc_category
+        FOREIGN KEY (category_id) REFERENCES service_categories(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_services_provider  ON services(provider_id);
+CREATE INDEX idx_services_category  ON services(category_id);
+CREATE INDEX idx_services_available ON services(is_available);
 ```
+
+---
 
 #### `orders` table
 ```sql
 CREATE TABLE orders (
-    id                  BIGSERIAL PRIMARY KEY,
-    order_number        VARCHAR(20) UNIQUE NOT NULL,
-    resident_id         BIGINT NOT NULL REFERENCES users(id),
-    provider_id         BIGINT NOT NULL REFERENCES users(id),
-    service_id          BIGINT NOT NULL REFERENCES services(id),
-    status              VARCHAR(20) DEFAULT 'pending'
-                        CHECK (status IN ('pending','accepted','in_progress','completed','cancelled','rejected')),
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_number        VARCHAR(20) NOT NULL,
+    resident_id         BIGINT NOT NULL,
+    provider_id         BIGINT NOT NULL,
+    service_id          BIGINT NOT NULL,
+    status              ENUM('pending','accepted','in_progress','completed','cancelled','rejected')
+                            DEFAULT 'pending',
     delivery_address    TEXT NOT NULL,
     delivery_lat        DECIMAL(10,7),
     delivery_lng        DECIMAL(10,7),
     notes               TEXT,
-    scheduled_time      TIMESTAMP,
+    scheduled_time      DATETIME,
     price               DECIMAL(10,2) NOT NULL,
-    payment_status      VARCHAR(20) DEFAULT 'unpaid'
-                        CHECK (payment_status IN ('unpaid','paid','refunded')),
+    payment_status      ENUM('unpaid','paid','refunded') DEFAULT 'unpaid',
     cancellation_reason TEXT,
-    accepted_at         TIMESTAMP,
-    started_at          TIMESTAMP,
-    completed_at        TIMESTAMP,
-    cancelled_at        TIMESTAMP,
-    created_at          TIMESTAMP DEFAULT NOW()
-);
+    accepted_at         DATETIME,
+    started_at          DATETIME,
+    completed_at        DATETIME,
+    cancelled_at        DATETIME,
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_order_number UNIQUE (order_number),
+    CONSTRAINT fk_ord_resident
+        FOREIGN KEY (resident_id) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_ord_provider
+        FOREIGN KEY (provider_id) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_ord_service
+        FOREIGN KEY (service_id)  REFERENCES services(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE INDEX idx_orders_resident ON orders(resident_id);
 CREATE INDEX idx_orders_provider ON orders(provider_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_orders_created ON orders(created_at DESC);
+CREATE INDEX idx_orders_status   ON orders(status);
+CREATE INDEX idx_orders_created  ON orders(created_at DESC);
 ```
+
+---
 
 #### `payments` table
 ```sql
 CREATE TABLE payments (
-    id                     BIGSERIAL PRIMARY KEY,
-    order_id               BIGINT NOT NULL REFERENCES orders(id),
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id               BIGINT NOT NULL,
     amount                 DECIMAL(10,2) NOT NULL,
     payment_method         VARCHAR(30) NOT NULL,
     gateway_transaction_id VARCHAR(100),
-    status                 VARCHAR(20) DEFAULT 'pending'
-                           CHECK (status IN ('pending','success','failed','refunded')),
-    paid_at                TIMESTAMP,
-    created_at             TIMESTAMP DEFAULT NOW()
-);
+    status                 ENUM('pending','success','failed','refunded') DEFAULT 'pending',
+    paid_at                DATETIME,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pay_order
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_payments_order  ON payments(order_id);
+CREATE INDEX idx_payments_status ON payments(status);
 ```
+
+---
 
 #### `reviews` table
 ```sql
 CREATE TABLE reviews (
-    id              BIGSERIAL PRIMARY KEY,
-    order_id        BIGINT UNIQUE NOT NULL REFERENCES orders(id),
-    resident_id     BIGINT NOT NULL REFERENCES users(id),
-    provider_id     BIGINT NOT NULL REFERENCES users(id),
-    rating          INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    comment         TEXT,
-    provider_reply  TEXT,
-    created_at      TIMESTAMP DEFAULT NOW()
-);
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id       BIGINT NOT NULL,
+    resident_id    BIGINT NOT NULL,
+    provider_id    BIGINT NOT NULL,
+    rating         TINYINT NOT NULL,
+    comment        TEXT,
+    provider_reply TEXT,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_review_order UNIQUE (order_id),
+    CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
+    CONSTRAINT fk_rev_order
+        FOREIGN KEY (order_id)    REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rev_resident
+        FOREIGN KEY (resident_id) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_rev_provider
+        FOREIGN KEY (provider_id) REFERENCES users(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE INDEX idx_reviews_provider ON reviews(provider_id);
+CREATE INDEX idx_reviews_rating   ON reviews(rating);
 ```
+
+---
 
 #### `notifications` table
 ```sql
 CREATE TABLE notifications (
-    id          BIGSERIAL PRIMARY KEY,
-    user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title       VARCHAR(200) NOT NULL,
-    body        TEXT,
-    type        VARCHAR(30), -- order_update, payment, system
-    related_id  BIGINT,
-    is_read     BOOLEAN DEFAULT FALSE,
-    created_at  TIMESTAMP DEFAULT NOW()
-);
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT NOT NULL,
+    title      VARCHAR(200) NOT NULL,
+    body       TEXT,
+    type       ENUM('order_update','payment','system','promotion') DEFAULT 'system',
+    related_id BIGINT,
+    is_read    TINYINT(1) DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notif_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE INDEX idx_notif_user_unread ON notifications(user_id, is_read);
+CREATE INDEX idx_notif_created     ON notifications(created_at DESC);
 ```
+
+---
 
 #### `complaints` table
 ```sql
 CREATE TABLE complaints (
-    id              BIGSERIAL PRIMARY KEY,
-    order_id        BIGINT REFERENCES orders(id),
-    complainant_id  BIGINT NOT NULL REFERENCES users(id),
-    against_id      BIGINT NOT NULL REFERENCES users(id),
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id        BIGINT,
+    complainant_id  BIGINT NOT NULL,
+    against_id      BIGINT NOT NULL,
     subject         VARCHAR(200),
     description     TEXT NOT NULL,
-    status          VARCHAR(20) DEFAULT 'open'
-                    CHECK (status IN ('open','in_review','resolved','closed')),
+    status          ENUM('open','in_review','resolved','closed') DEFAULT 'open',
     admin_response  TEXT,
-    created_at      TIMESTAMP DEFAULT NOW(),
-    resolved_at     TIMESTAMP
-);
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at     DATETIME,
+    CONSTRAINT fk_cmp_order
+        FOREIGN KEY (order_id)       REFERENCES orders(id) ON DELETE SET NULL,
+    CONSTRAINT fk_cmp_complainant
+        FOREIGN KEY (complainant_id) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_cmp_against
+        FOREIGN KEY (against_id)     REFERENCES users(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_complaints_status ON complaints(status);
+CREATE INDEX idx_complaints_complainant ON complaints(complainant_id);
 ```
+
+---
+
+### 4.7 Django Model Compatibility Notes
+
+When using MySQL with Django ORM, apply the following model-level adjustments:
+
+```python
+# models.py — key field definitions for MySQL compatibility
+
+from django.db import models
+
+class User(AbstractBaseUser):
+    phone     = models.CharField(max_length=15, unique=True)
+    user_type = models.CharField(
+        max_length=20,
+        choices=[('resident','Resident'),('provider','Provider'),('admin','Admin')]
+    )
+    is_active   = models.BooleanField(default=True)   # → TINYINT(1) in MySQL
+    is_verified = models.BooleanField(default=False)
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'users'
+
+
+class ProviderProfile(models.Model):
+    STATUS_CHOICES = [
+        ('pending',   'Pending'),
+        ('approved',  'Approved'),
+        ('rejected',  'Rejected'),
+        ('suspended', 'Suspended'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    # Django CharField does NOT map to MySQL ENUM automatically.
+    # To use MySQL ENUM, apply a custom migration:
+    # ALTER TABLE provider_profiles MODIFY status ENUM(...) DEFAULT 'pending';
+
+    class Meta:
+        db_table = 'provider_profiles'
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending',     'Pending'),
+        ('accepted',    'Accepted'),
+        ('in_progress', 'In Progress'),
+        ('completed',   'Completed'),
+        ('cancelled',   'Cancelled'),
+        ('rejected',    'Rejected'),
+    ]
+    PAYMENT_STATUS = [
+        ('unpaid',   'Unpaid'),
+        ('paid',     'Paid'),
+        ('refunded', 'Refunded'),
+    ]
+    status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='unpaid')
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'orders'
+        indexes  = [
+            models.Index(fields=['status']),
+            models.Index(fields=['-created_at']),
+        ]
+```
+
+> **Tip:** Run `python manage.py inspectdb` after connecting to MySQL to auto-generate model stubs from the existing schema.
 
 ---
 
@@ -442,7 +654,7 @@ Sequence diagrams have been prepared for **3 critical scenarios**:
 **Steps:**
 1. Provider fills the registration form and uploads documents
 2. React Portal sends `POST /api/providers/register`
-3. Django stores the data in PostgreSQL with `pending` status
+3. Django stores the data in **MySQL** with `pending` status
 4. A notification is created for the admin
 5. Admin reviews and approves via `PATCH /api/admin/providers/{id}/approve`
 6. Status is updated and a push notification is sent to the provider via FCM
@@ -732,16 +944,34 @@ test(payments): add integration tests for Moyasar webhook
    /--------------\
 ```
 
-#### Backend Testing (Django)
+#### Backend Testing (Django + MySQL)
 
 | Type | Tool | Coverage |
 |---|---|---|
 | **Unit Tests** | `pytest`, `pytest-django` | Models, Services, Utils |
-| **Integration Tests** | `DRF APITestCase` | Endpoints + DB |
+| **Integration Tests** | `DRF APITestCase` | Endpoints + MySQL DB |
 | **Mocking** | `unittest.mock`, `responses` | External APIs |
 | **Coverage** | `coverage.py` | Target: ≥ 80% |
 | **Static Analysis** | `flake8`, `black`, `mypy` | — |
 | **Security** | `bandit`, `safety` | — |
+
+> **MySQL test setup:** Use `pytest-django` with a dedicated test database. Django automatically creates and destroys a test DB (`test_hayyak_db`) for each test run.
+
+```python
+# pytest.ini
+[pytest]
+DJANGO_SETTINGS_MODULE = hayyak.settings.test
+
+# settings/test.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test_hayyak_db',
+        'TEST': {'NAME': 'test_hayyak_db'},
+        ...
+    }
+}
+```
 
 #### Frontend Testing (React / React Native)
 
@@ -761,43 +991,63 @@ test(payments): add integration tests for Moyasar webhook
 #### CI/CD Pipeline — **GitHub Actions**
 
 ```yaml
-# .github/workflows/ci.yml — simplified example
+# .github/workflows/ci.yml
 on: [push, pull_request]
 
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_hayyak_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
-      - checkout
-      - setup-python (3.11)
-      - install dependencies
-      - run flake8 + black --check
-      - run pytest with coverage
-      - upload coverage report
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: flake8 . && black --check .
+      - run: pytest --cov=. --cov-report=xml
+      - uses: codecov/codecov-action@v3
 
   frontend-tests:
     runs-on: ubuntu-latest
     steps:
-      - checkout
-      - setup-node (20)
-      - npm ci
-      - npm run lint
-      - npm test -- --coverage
-      - npm run build
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --coverage
+      - run: npm run build
 
   deploy:
     needs: [backend-tests, frontend-tests]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - deploy to production
+      - name: Deploy to production
+        run: echo "Deploying..."
 ```
 
 #### Deployment Environments
 
 | Environment | Purpose | Deployment |
 |---|---|---|
-| **Development** | Local developer environment | Manual (docker-compose) |
+| **Development** | Local developer environment | Manual (docker-compose with MySQL 8.0) |
 | **Staging** | Pre-release testing | Automated from `develop` |
 | **Production** | Live | Automated from `main` after review |
 
@@ -825,13 +1075,25 @@ Every technical decision is justified based on project requirements:
 
 **Decision:** Django + DRF, because the project needs a strong admin panel, built-in security features (authentication, permissions), and a reliable ORM. Expected performance is sufficient for the MVP.
 
-### 8.2 Choosing PostgreSQL (over MongoDB)
+### 8.2 Choosing MySQL (over PostgreSQL or MongoDB)
 
-- **Strong relationships:** Orders are tied to users, services, providers, and payments — relational integrity enforces consistency.
-- **Financial transactions:** PostgreSQL fully supports ACID transactions, essential for payments.
-- **Geospatial queries:** PostGIS extension provides excellent performance for location-based searches.
-- **Django integration:** Django ORM is more optimized for SQL.
-- **High reliability** for sensitive data.
+| Criterion | MySQL 8.0 | PostgreSQL | MongoDB |
+|---|---|---|---|
+| **ACID Compliance** | ✅ InnoDB | ✅ Native | ⚠️ Partial |
+| **Django ORM Support** | ✅ Official backend | ✅ Official backend | ⚠️ Third-party |
+| **ENUM Support** | ✅ Native | ⚠️ Via CHECK | ❌ |
+| **Hosting Availability** | ✅ Ubiquitous | ✅ Good | ✅ Good |
+| **Ease of Management** | ✅ Simpler tooling | ⚠️ More complex | ✅ Simple |
+| **Full-text Search** | ✅ Built-in | ✅ Better | ✅ Built-in |
+| **Relational Integrity** | ✅ InnoDB FK | ✅ Native | ❌ |
+
+**Decision:** MySQL 8.0 with InnoDB engine because:
+- **Strong relational model:** Orders, services, providers, and payments are tightly related — InnoDB enforces FK constraints reliably.
+- **ACID transactions:** Critical for payment processing and order status changes.
+- **Native ENUM:** Cleaner status field definitions, enforced at the DB layer.
+- **Team familiarity:** MySQL is more widely known, reducing onboarding time.
+- **Hosting cost:** MySQL is available on virtually every cloud provider and shared host, often at lower cost than PostgreSQL.
+- **Django compatibility:** Django's MySQL backend is production-tested and well-documented.
 
 ### 8.3 Choosing React Native (over Flutter or Native)
 
@@ -879,6 +1141,7 @@ For real-time order tracking without constant HTTP polling → saves resources +
 - **Integrated with GitHub** without separate infrastructure setup.
 - **Free** for small and medium projects.
 - **Easy to maintain** (YAML files).
+- **MySQL service container** natively supported in GitHub Actions runners (see CI/CD section).
 
 ---
 
@@ -897,10 +1160,33 @@ All diagrams are in the `/diagrams/` folder:
 | `05_sequence_order_flow.svg` | Order creation and tracking sequence |
 | `06_sequence_payment.svg` | Electronic payment sequence |
 
+### MySQL Quick Reference
+
+```sql
+-- Check all tables and engines
+SELECT table_name, engine, table_collation
+FROM information_schema.tables
+WHERE table_schema = 'hayyak_db';
+
+-- Verify foreign keys
+SELECT constraint_name, table_name, referenced_table_name
+FROM information_schema.referential_constraints
+WHERE constraint_schema = 'hayyak_db';
+
+-- Check ENUM values for a column
+SELECT column_type
+FROM information_schema.columns
+WHERE table_schema = 'hayyak_db'
+  AND table_name = 'orders'
+  AND column_name = 'status';
+```
+
 ### References
 
 - [Django REST Framework Docs](https://www.django-rest-framework.org/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Django MySQL Notes](https://docs.djangoproject.com/en/stable/ref/databases/#mysql-notes)
+- [MySQL 8.0 Reference Manual](https://dev.mysql.com/doc/refman/8.0/en/)
+- [MySQL InnoDB Storage Engine](https://dev.mysql.com/doc/refman/8.0/en/innodb-storage-engine.html)
 - [React Native Docs](https://reactnative.dev/)
 - [Moyasar API Docs](https://docs.moyasar.com/)
 - [Google Maps Platform](https://developers.google.com/maps)
@@ -909,4 +1195,4 @@ All diagrams are in the `/diagrams/` folder:
 ---
 
 **Prepared by:** Hayyak Team — April 2026
-**Version:** 1.0
+**Version:** 1.1 — MySQL Edition
