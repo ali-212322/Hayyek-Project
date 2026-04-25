@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="Arial, sans-serif">
+  <rect width="1200" height="780" fill="#F8FAFC"/>
+  
+  <text x="600" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">Sequence Diagram — Payment Processing</text>
+  <text x="600" y="55" text-anchor="middle" font-size="13" fill="#64748B">Use Case #3: Electronic payment processing via Moyasar</text>
+
+  <!-- Participants -->
+  <g>
+    <rect x="60" y="85" width="140" height="45" rx="4" fill="#0891B2"/>
+    <text x="130" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Resident</text>
+  </g>
+  
+  <g>
+    <rect x="240" y="85" width="140" height="45" rx="4" fill="#0EA5E9"/>
+    <text x="310" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Mobile App</text>
+  </g>
+  
+  <g>
+    <rect x="420" y="85" width="140" height="45" rx="4" fill="#10B981"/>
+    <text x="490" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Django API</text>
+  </g>
+  
+  <g>
+    <rect x="600" y="85" width="140" height="45" rx="4" fill="#F97316"/>
+    <text x="670" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Moyasar</text>
+    <text x="670" y="120" text-anchor="middle" font-size="10" fill="#FFEDD5">(Payment Gateway)</text>
+  </g>
+  
+  <g>
+    <rect x="780" y="85" width="140" height="45" rx="4" fill="#A855F7"/>
+    <text x="850" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">MySQL</text>
+  </g>
+  
+  <g>
+    <rect x="960" y="85" width="180" height="45" rx="4" fill="#DC2626"/>
+    <text x="1050" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Provider</text>
+    <text x="1050" y="120" text-anchor="middle" font-size="10" fill="#FEE2E2">(via FCM)</text>
+  </g>
+
+  <!-- Lifelines -->
+  <line x1="130" y1="130" x2="130" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="310" y1="130" x2="310" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="490" y1="130" x2="490" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="670" y1="130" x2="670" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="850" y1="130" x2="850" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="1050" y1="130" x2="1050" y2="740" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+  <!-- 1 -->
+  <line x1="130" y1="170" x2="305" y2="170" stroke="#334155" stroke-width="2" marker-end="url(#c1)"/>
+  <text x="217" y="163" text-anchor="middle" font-size="10" fill="#334155">1. Tap "Pay Now" after order creation</text>
+
+  <!-- 2 -->
+  <line x1="310" y1="200" x2="485" y2="200" stroke="#059669" stroke-width="2" marker-end="url(#c2)"/>
+  <text x="397" y="193" text-anchor="middle" font-size="10" fill="#059669">2. POST /api/payments/initiate/{order_id}</text>
+
+  <!-- 3 -->
+  <line x1="490" y1="230" x2="845" y2="230" stroke="#7E22CE" stroke-width="2" marker-end="url(#c3)"/>
+  <text x="667" y="223" text-anchor="middle" font-size="10" fill="#7E22CE">3. SELECT order details (amount, order_number)</text>
+  <line x1="850" y1="255" x2="495" y2="255" stroke="#7E22CE" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#c4)"/>
+
+  <!-- 4 -->
+  <line x1="490" y1="290" x2="665" y2="290" stroke="#EA580C" stroke-width="2" marker-end="url(#c5)"/>
+  <text x="577" y="283" text-anchor="middle" font-size="10" fill="#EA580C">4. Create payment session (amount, callback_url)</text>
+  <line x1="670" y1="315" x2="495" y2="315" stroke="#EA580C" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#c6)"/>
+  <text x="577" y="308" text-anchor="middle" font-size="9" fill="#EA580C" font-style="italic">returns payment_url + token</text>
+
+  <!-- 5 -->
+  <line x1="490" y1="345" x2="855" y2="345" stroke="#7E22CE" stroke-width="2" marker-end="url(#c7)"/>
+  <text x="672" y="338" text-anchor="middle" font-size="10" fill="#7E22CE">5. INSERT payments (status='pending', gateway_id)</text>
+
+  <!-- 6 -->
+  <line x1="490" y1="380" x2="315" y2="380" stroke="#059669" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#c8)"/>
+  <text x="402" y="373" text-anchor="middle" font-size="10" fill="#059669">6. 200 OK — { payment_url }</text>
+
+  <!-- 7 -->
+  <line x1="310" y1="410" x2="135" y2="410" stroke="#334155" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#c9)"/>
+  <text x="222" y="403" text-anchor="middle" font-size="10" fill="#334155">7. Open secure payment window</text>
+
+  <!-- 8 -->
+  <line x1="130" y1="445" x2="665" y2="445" stroke="#EA580C" stroke-width="2" marker-end="url(#c10)"/>
+  <text x="397" y="438" text-anchor="middle" font-size="10" fill="#EA580C">8. Enter card/Apple Pay details in secure iframe</text>
+
+  <!-- 9: Moyasar processes -->
+  <rect x="665" y="465" width="10" height="30" fill="#F97316"/>
+  <text x="685" y="483" font-size="10" fill="#EA580C">9. Moyasar processes payment and contacts bank</text>
+
+  <!-- Separator -->
+  <line x1="60" y1="515" x2="1140" y2="515" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="600" y="533" text-anchor="middle" font-size="11" font-weight="bold" fill="#64748B">--- Webhook (Async callback) ---</text>
+
+  <!-- 10: Webhook -->
+  <line x1="670" y1="560" x2="485" y2="560" stroke="#EA580C" stroke-width="2" marker-end="url(#c11)"/>
+  <text x="577" y="553" text-anchor="middle" font-size="10" fill="#EA580C">10. POST /api/payments/webhook/moyasar</text>
+  <text x="577" y="575" text-anchor="middle" font-size="9" fill="#EA580C" font-style="italic">{ status:'paid', transaction_id, signature }</text>
+
+  <!-- 11: Verify signature -->
+  <rect x="485" y="590" width="10" height="25" fill="#10B981"/>
+  <text x="500" y="605" font-size="10" fill="#10B981">11. Verify webhook signature (HMAC)</text>
+
+  <!-- 12 -->
+  <line x1="490" y1="635" x2="845" y2="635" stroke="#7E22CE" stroke-width="2" marker-end="url(#c12)"/>
+  <text x="667" y="628" text-anchor="middle" font-size="10" fill="#7E22CE">12. UPDATE payments.status='success' + orders.payment_status='paid'</text>
+
+  <!-- 13 -->
+  <line x1="490" y1="670" x2="1045" y2="670" stroke="#DC2626" stroke-width="2" marker-end="url(#c13)"/>
+  <text x="767" y="663" text-anchor="middle" font-size="10" fill="#DC2626">13. Trigger Celery → FCM notify provider (new paid order)</text>
+
+  <!-- 14 -->
+  <line x1="490" y1="705" x2="315" y2="705" stroke="#059669" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#c14)"/>
+  <text x="402" y="698" text-anchor="middle" font-size="10" fill="#059669">14. WebSocket push: "payment_success"</text>
+
+  <!-- 15 -->
+  <line x1="310" y1="730" x2="135" y2="730" stroke="#334155" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#c15)"/>
+  <text x="222" y="723" text-anchor="middle" font-size="10" fill="#334155">15. "Payment successful" + navigate to tracking screen</text>
+
+  <defs>
+    <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="c3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="c4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="c5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
+    <marker id="c6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
+    <marker id="c7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="c8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="c9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="c10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
+    <marker id="c11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
+    <marker id="c12" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="c13" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+    <marker id="c14" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="c15" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+  </defs>
+</svg>
