@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 900" font-family="Arial, sans-serif">
+  <rect width="1280" height="900" fill="#F8FAFC"/>
+  
+  <!-- Title -->
+  <text x="640" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">Entity-Relationship Diagram — MySQL</text>
+  <text x="640" y="55" text-anchor="middle" font-size="13" fill="#64748B">Database Schema for Hayyak Platform</text>
+
+  <!-- Legend -->
+  <g>
+    <rect x="30" y="75" width="200" height="75" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="40" y="93" font-size="11" font-weight="bold" fill="#334155">Legend:</text>
+    <text x="40" y="110" font-size="10" fill="#334155">🔑 Primary Key (PK)</text>
+    <text x="40" y="125" font-size="10" fill="#334155">🔗 Foreign Key (FK)</text>
+    <text x="40" y="140" font-size="10" fill="#334155">⭐ Unique</text>
+  </g>
+
+  <!-- neighborhoods -->
+  <g>
+    <rect x="30" y="180" width="230" height="170" rx="4" fill="#FFFFFF" stroke="#0891B2" stroke-width="2"/>
+    <rect x="30" y="180" width="230" height="28" rx="4" fill="#0891B2"/>
+    <text x="145" y="199" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">neighborhoods</text>
+    <text x="42" y="225" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="42" y="244" font-size="11" fill="#334155">name_ar: VARCHAR(100)</text>
+    <text x="42" y="263" font-size="11" fill="#334155">name_en: VARCHAR(100)</text>
+    <text x="42" y="282" font-size="11" fill="#334155">city: VARCHAR(100)</text>
+    <text x="42" y="301" font-size="11" fill="#334155">center_lat: DECIMAL(10,7)</text>
+    <text x="42" y="320" font-size="11" fill="#334155">center_lng: DECIMAL(10,7)</text>
+    <text x="42" y="339" font-size="11" fill="#334155">radius_km: DECIMAL(5,2)</text>
+  </g>
+
+  <!-- users -->
+  <g>
+    <rect x="340" y="180" width="250" height="210" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="2"/>
+    <rect x="340" y="180" width="250" height="28" rx="4" fill="#0284C7"/>
+    <text x="465" y="199" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">users</text>
+    <text x="352" y="225" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="352" y="244" font-size="11" fill="#334155">⭐ phone: VARCHAR(15)</text>
+    <text x="352" y="263" font-size="11" fill="#334155">⭐ email: VARCHAR(255)</text>
+    <text x="352" y="282" font-size="11" fill="#334155">password_hash: VARCHAR(255)</text>
+    <text x="352" y="301" font-size="11" fill="#334155">full_name: VARCHAR(100)</text>
+    <text x="352" y="320" font-size="11" fill="#334155">user_type: ENUM</text>
+    <text x="352" y="339" font-size="11" fill="#334155">is_active: TINYINT(1)</text>
+    <text x="352" y="358" font-size="11" fill="#334155">is_verified: TINYINT(1)</text>
+    <text x="352" y="377" font-size="11" fill="#334155">created_at: DATETIME</text>
+  </g>
+
+  <!-- service_categories -->
+  <g>
+    <rect x="670" y="180" width="230" height="130" rx="4" fill="#FFFFFF" stroke="#EC4899" stroke-width="2"/>
+    <rect x="670" y="180" width="230" height="28" rx="4" fill="#EC4899"/>
+    <text x="785" y="199" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">service_categories</text>
+    <text x="682" y="225" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="682" y="244" font-size="11" fill="#334155">name_ar: VARCHAR(100)</text>
+    <text x="682" y="263" font-size="11" fill="#334155">name_en: VARCHAR(100)</text>
+    <text x="682" y="282" font-size="11" fill="#334155">icon_url: VARCHAR(500)</text>
+    <text x="682" y="301" font-size="11" fill="#334155">is_active: TINYINT(1)</text>
+  </g>
+
+  <!-- notifications -->
+  <g>
+    <rect x="980" y="180" width="260" height="170" rx="4" fill="#FFFFFF" stroke="#9333EA" stroke-width="2"/>
+    <rect x="980" y="180" width="260" height="28" rx="4" fill="#9333EA"/>
+    <text x="1110" y="199" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">notifications</text>
+    <text x="992" y="225" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="992" y="244" font-size="11" fill="#334155">🔗 user_id → users.id</text>
+    <text x="992" y="263" font-size="11" fill="#334155">title: VARCHAR(200)</text>
+    <text x="992" y="282" font-size="11" fill="#334155">body: TEXT</text>
+    <text x="992" y="301" font-size="11" fill="#334155">type: ENUM</text>
+    <text x="992" y="320" font-size="11" fill="#334155">is_read: TINYINT(1)</text>
+    <text x="992" y="339" font-size="11" fill="#334155">created_at: DATETIME</text>
+  </g>
+
+  <!-- resident_profiles -->
+  <g>
+    <rect x="30" y="420" width="250" height="140" rx="4" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect x="30" y="420" width="250" height="28" rx="4" fill="#10B981"/>
+    <text x="155" y="439" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">resident_profiles</text>
+    <text x="42" y="465" font-size="11" fill="#334155">🔑🔗 user_id → users.id</text>
+    <text x="42" y="484" font-size="11" fill="#334155">🔗 neighborhood_id</text>
+    <text x="42" y="503" font-size="11" fill="#334155">default_address: TEXT</text>
+    <text x="42" y="522" font-size="11" fill="#334155">default_lat: DECIMAL(10,7)</text>
+    <text x="42" y="541" font-size="11" fill="#334155">default_lng: DECIMAL(10,7)</text>
+  </g>
+
+  <!-- provider_profiles -->
+  <g>
+    <rect x="340" y="420" width="260" height="230" rx="4" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+    <rect x="340" y="420" width="260" height="28" rx="4" fill="#F59E0B"/>
+    <text x="470" y="439" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">provider_profiles</text>
+    <text x="352" y="465" font-size="11" fill="#334155">🔑🔗 user_id → users.id</text>
+    <text x="352" y="484" font-size="11" fill="#334155">business_name: VARCHAR(150)</text>
+    <text x="352" y="503" font-size="11" fill="#334155">commercial_register: VARCHAR</text>
+    <text x="352" y="522" font-size="11" fill="#334155">id_document_url: VARCHAR(500)</text>
+    <text x="352" y="541" font-size="11" fill="#334155">logo_url: VARCHAR(500)</text>
+    <text x="352" y="560" font-size="11" fill="#334155">🔗 neighborhood_id</text>
+    <text x="352" y="579" font-size="11" fill="#334155">location_lat/lng: DECIMAL</text>
+    <text x="352" y="598" font-size="11" fill="#334155">status: ENUM</text>
+    <text x="352" y="617" font-size="11" fill="#334155">is_available: TINYINT(1)</text>
+    <text x="352" y="636" font-size="11" fill="#334155">avg_rating: DECIMAL(3,2)</text>
+  </g>
+
+  <!-- services -->
+  <g>
+    <rect x="670" y="420" width="240" height="190" rx="4" fill="#FFFFFF" stroke="#14B8A6" stroke-width="2"/>
+    <rect x="670" y="420" width="240" height="28" rx="4" fill="#14B8A6"/>
+    <text x="790" y="439" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">services</text>
+    <text x="682" y="465" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="682" y="484" font-size="11" fill="#334155">🔗 provider_id</text>
+    <text x="682" y="503" font-size="11" fill="#334155">🔗 category_id</text>
+    <text x="682" y="522" font-size="11" fill="#334155">title: VARCHAR(200)</text>
+    <text x="682" y="541" font-size="11" fill="#334155">description: TEXT</text>
+    <text x="682" y="560" font-size="11" fill="#334155">price: DECIMAL(10,2)</text>
+    <text x="682" y="579" font-size="11" fill="#334155">price_type: ENUM</text>
+    <text x="682" y="598" font-size="11" fill="#334155">is_available: TINYINT(1)</text>
+  </g>
+
+  <!-- orders -->
+  <g>
+    <rect x="340" y="690" width="280" height="210" rx="4" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+    <rect x="340" y="690" width="280" height="28" rx="4" fill="#DC2626"/>
+    <text x="480" y="709" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">orders</text>
+    <text x="352" y="735" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="352" y="754" font-size="11" fill="#334155">⭐ order_number: VARCHAR(20)</text>
+    <text x="352" y="773" font-size="11" fill="#334155">🔗 resident_id → users.id</text>
+    <text x="352" y="792" font-size="11" fill="#334155">🔗 provider_id → users.id</text>
+    <text x="352" y="811" font-size="11" fill="#334155">🔗 service_id → services.id</text>
+    <text x="352" y="830" font-size="11" fill="#334155">status: ENUM</text>
+    <text x="352" y="849" font-size="11" fill="#334155">delivery_address: TEXT</text>
+    <text x="352" y="868" font-size="11" fill="#334155">price: DECIMAL(10,2)</text>
+    <text x="352" y="887" font-size="11" fill="#334155">payment_status: ENUM</text>
+  </g>
+
+  <!-- payments -->
+  <g>
+    <rect x="680" y="690" width="240" height="170" rx="4" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect x="680" y="690" width="240" height="28" rx="4" fill="#8B5CF6"/>
+    <text x="800" y="709" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">payments</text>
+    <text x="692" y="735" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="692" y="754" font-size="11" fill="#334155">🔗 order_id → orders.id</text>
+    <text x="692" y="773" font-size="11" fill="#334155">amount: DECIMAL(10,2)</text>
+    <text x="692" y="792" font-size="11" fill="#334155">payment_method: VARCHAR</text>
+    <text x="692" y="811" font-size="11" fill="#334155">gateway_transaction_id</text>
+    <text x="692" y="830" font-size="11" fill="#334155">status: ENUM</text>
+    <text x="692" y="849" font-size="11" fill="#334155">paid_at: DATETIME</text>
+  </g>
+
+  <!-- reviews -->
+  <g>
+    <rect x="980" y="450" width="240" height="180" rx="4" fill="#FFFFFF" stroke="#F97316" stroke-width="2"/>
+    <rect x="980" y="450" width="240" height="28" rx="4" fill="#F97316"/>
+    <text x="1100" y="469" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">reviews</text>
+    <text x="992" y="495" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="992" y="514" font-size="11" fill="#334155">⭐🔗 order_id → orders.id</text>
+    <text x="992" y="533" font-size="11" fill="#334155">🔗 resident_id → users.id</text>
+    <text x="992" y="552" font-size="11" fill="#334155">🔗 provider_id → users.id</text>
+    <text x="992" y="571" font-size="11" fill="#334155">rating: INT (1-5)</text>
+    <text x="992" y="590" font-size="11" fill="#334155">comment: TEXT</text>
+    <text x="992" y="609" font-size="11" fill="#334155">provider_reply: TEXT</text>
+  </g>
+
+  <!-- complaints -->
+  <g>
+    <rect x="980" y="690" width="260" height="200" rx="4" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="980" y="690" width="260" height="28" rx="4" fill="#7C3AED"/>
+    <text x="1110" y="709" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">complaints</text>
+    <text x="992" y="735" font-size="11" fill="#334155">🔑 id: BIGINT AUTO_INCREMENT</text>
+    <text x="992" y="754" font-size="11" fill="#334155">🔗 order_id → orders.id</text>
+    <text x="992" y="773" font-size="11" fill="#334155">🔗 complainant_id → users.id</text>
+    <text x="992" y="792" font-size="11" fill="#334155">🔗 against_id → users.id</text>
+    <text x="992" y="811" font-size="11" fill="#334155">subject: VARCHAR(200)</text>
+    <text x="992" y="830" font-size="11" fill="#334155">description: TEXT</text>
+    <text x="992" y="849" font-size="11" fill="#334155">status: ENUM</text>
+    <text x="992" y="868" font-size="11" fill="#334155">admin_response: TEXT</text>
+  </g>
+
+  <!-- Relationships -->
+  <path d="M 150 350 L 150 420" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="155" y="390" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <path d="M 260 290 Q 320 310 340 480" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="290" y="380" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <path d="M 340 290 L 280 460" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <line x1="465" y1="390" x2="465" y2="420" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <text x="470" y="410" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  <line x1="590" y1="260" x2="980" y2="260" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <text x="780" y="255" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <path d="M 785 310 L 785 420" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="790" y="370" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <line x1="600" y1="520" x2="670" y2="520" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <text x="615" y="515" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <path d="M 790 610 L 790 640 Q 790 680 620 770" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="720" y="680" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  <path d="M 420 390 Q 360 550 400 690" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="340" y="570" font-size="10" fill="#475569" font-style="italic">as resident</text>
+  <path d="M 500 390 Q 530 550 500 690" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)" stroke-dasharray="4,2"/>
+  <text x="510" y="570" font-size="10" fill="#475569" font-style="italic">as provider</text>
+  <line x1="620" y1="770" x2="680" y2="770" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <text x="632" y="765" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  <path d="M 620 720 L 980 540" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow3)"/>
+  <text x="820" y="620" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  <line x1="620" y1="820" x2="980" y2="760" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <text x="800" y="795" font-size="10" fill="#475569" font-style="italic">1..N</text>
+
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+</svg>
