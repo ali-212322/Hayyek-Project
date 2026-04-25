@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1100" height="780" fill="#F8FAFC"/>
+  
+  <!-- Title -->
+  <text x="550" y="35" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">System Architecture — Hayyak Platform</text>
+  <text x="550" y="58" text-anchor="middle" font-size="13" fill="#64748B">High-Level Architecture Diagram</text>
+
+  <!-- ===== Layer 1: Clients ===== -->
+  <rect x="40" y="85" width="1020" height="130" rx="8" fill="#E0F2FE" stroke="#0284C7" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="60" y="108" font-size="14" font-weight="bold" fill="#0C4A6E">Presentation Layer (Clients)</text>
+  
+  <!-- Mobile App -->
+  <rect x="130" y="125" width="320" height="75" rx="6" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="2"/>
+  <text x="290" y="148" text-anchor="middle" font-size="14" font-weight="bold" fill="#0C4A6E">Mobile App</text>
+  <text x="290" y="170" text-anchor="middle" font-size="12" fill="#334155">React Native (iOS + Android)</text>
+  <text x="290" y="188" text-anchor="middle" font-size="11" fill="#64748B">For Residents</text>
+  
+  <!-- Providers + Admin Portal -->
+  <rect x="650" y="125" width="320" height="75" rx="6" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="2"/>
+  <text x="810" y="148" text-anchor="middle" font-size="14" font-weight="bold" fill="#0C4A6E">Providers &amp; Admin Web Portal</text>
+  <text x="810" y="170" text-anchor="middle" font-size="12" fill="#334155">React SPA (Web)</text>
+  <text x="810" y="188" text-anchor="middle" font-size="11" fill="#64748B">For Service Providers and Administrators</text>
+
+  <!-- Arrows down to Gateway -->
+  <line x1="290" y1="200" x2="460" y2="255" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="810" y1="200" x2="640" y2="255" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="480" y="232" font-size="11" fill="#475569" font-style="italic">HTTPS / REST + WebSocket</text>
+
+  <!-- ===== Layer 2: API Gateway ===== -->
+  <rect x="380" y="260" width="340" height="55" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="550" y="283" text-anchor="middle" font-size="14" font-weight="bold" fill="#78350F">Nginx — Reverse Proxy</text>
+  <text x="550" y="303" text-anchor="middle" font-size="11" fill="#92400E">SSL Termination • Load Balancing • Rate Limiting</text>
+
+  <!-- Arrow -->
+  <line x1="550" y1="315" x2="550" y2="345" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ===== Layer 3: Application ===== -->
+  <rect x="40" y="350" width="1020" height="190" rx="8" fill="#ECFDF5" stroke="#10B981" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="60" y="373" font-size="14" font-weight="bold" fill="#064E3B">Application Layer (Backend Services)</text>
+  
+  <!-- Django API -->
+  <rect x="80" y="390" width="280" height="130" rx="6" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+  <text x="220" y="415" text-anchor="middle" font-size="14" font-weight="bold" fill="#064E3B">Django REST Framework</text>
+  <text x="220" y="438" text-anchor="middle" font-size="11" fill="#334155">• JWT Authentication</text>
+  <text x="220" y="456" text-anchor="middle" font-size="11" fill="#334155">• Business Logic &amp; Validation</text>
+  <text x="220" y="474" text-anchor="middle" font-size="11" fill="#334155">• Django ORM</text>
+  <text x="220" y="492" text-anchor="middle" font-size="11" fill="#334155">• Django Admin</text>
+  <text x="220" y="510" text-anchor="middle" font-size="11" fill="#334155">• REST API Endpoints</text>
+  
+  <!-- Channels / WebSockets -->
+  <rect x="400" y="390" width="260" height="130" rx="6" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+  <text x="530" y="415" text-anchor="middle" font-size="14" font-weight="bold" fill="#064E3B">Django Channels</text>
+  <text x="530" y="438" text-anchor="middle" font-size="11" fill="#334155">• WebSocket Support</text>
+  <text x="530" y="456" text-anchor="middle" font-size="11" fill="#334155">• Real-time Order Tracking</text>
+  <text x="530" y="474" text-anchor="middle" font-size="11" fill="#334155">• Live Notifications</text>
+  <text x="530" y="498" text-anchor="middle" font-size="11" fill="#64748B" font-style="italic">(Redis Channel Layer)</text>
+  
+  <!-- Celery -->
+  <rect x="700" y="390" width="280" height="130" rx="6" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+  <text x="840" y="415" text-anchor="middle" font-size="14" font-weight="bold" fill="#064E3B">Celery Workers</text>
+  <text x="840" y="438" text-anchor="middle" font-size="11" fill="#334155">• Background Tasks</text>
+  <text x="840" y="456" text-anchor="middle" font-size="11" fill="#334155">• Push Notifications (FCM)</text>
+  <text x="840" y="474" text-anchor="middle" font-size="11" fill="#334155">• SMS Sending (OTP)</text>
+  <text x="840" y="492" text-anchor="middle" font-size="11" fill="#334155">• Reports Generation</text>
+  <text x="840" y="510" text-anchor="middle" font-size="11" fill="#334155">• Email Notifications</text>
+
+  <!-- Arrows to Data -->
+  <line x1="220" y1="520" x2="220" y2="575" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="530" y1="520" x2="530" y2="575" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="840" y1="520" x2="840" y2="575" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ===== Layer 4: Data ===== -->
+  <rect x="40" y="580" width="1020" height="110" rx="8" fill="#FAE8FF" stroke="#A855F7" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="60" y="603" font-size="14" font-weight="bold" fill="#581C87">Data Layer</text>
+  
+  <!-- MySQL -->
+  <rect x="80" y="615" width="280" height="65" rx="6" fill="#FFFFFF" stroke="#A855F7" stroke-width="2"/>
+  <text x="220" y="640" text-anchor="middle" font-size="14" font-weight="bold" fill="#581C87">MySQL</text>
+  <text x="220" y="660" text-anchor="middle" font-size="11" fill="#334155">Primary Relational Database (InnoDB)</text>
+  <text x="220" y="674" text-anchor="middle" font-size="10" fill="#64748B">Users, Orders, Services, Payments</text>
+  
+  <!-- Redis -->
+  <rect x="400" y="615" width="260" height="65" rx="6" fill="#FFFFFF" stroke="#A855F7" stroke-width="2"/>
+  <text x="530" y="640" text-anchor="middle" font-size="14" font-weight="bold" fill="#581C87">Redis</text>
+  <text x="530" y="660" text-anchor="middle" font-size="11" fill="#334155">Cache + Message Broker</text>
+  <text x="530" y="674" text-anchor="middle" font-size="10" fill="#64748B">Sessions, Queues, Channel Layer</text>
+  
+  <!-- S3 -->
+  <rect x="700" y="615" width="280" height="65" rx="6" fill="#FFFFFF" stroke="#A855F7" stroke-width="2"/>
+  <text x="840" y="640" text-anchor="middle" font-size="14" font-weight="bold" fill="#581C87">AWS S3</text>
+  <text x="840" y="660" text-anchor="middle" font-size="11" fill="#334155">Object Storage</text>
+  <text x="840" y="674" text-anchor="middle" font-size="10" fill="#64748B">Images, Documents, Logos</text>
+
+  <!-- ===== External Services Sidebar ===== -->
+  <rect x="40" y="705" width="1020" height="60" rx="8" fill="#FEF2F2" stroke="#EF4444" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="60" y="725" font-size="13" font-weight="bold" fill="#7F1D1D">External Services (3rd Party APIs)</text>
+  
+  <rect x="80" y="735" width="165" height="22" rx="3" fill="#FFFFFF" stroke="#EF4444" stroke-width="1"/>
+  <text x="162" y="750" text-anchor="middle" font-size="11" fill="#7F1D1D">Google Maps API</text>
+  
+  <rect x="260" y="735" width="165" height="22" rx="3" fill="#FFFFFF" stroke="#EF4444" stroke-width="1"/>
+  <text x="342" y="750" text-anchor="middle" font-size="11" fill="#7F1D1D">Moyasar Payment</text>
+  
+  <rect x="440" y="735" width="165" height="22" rx="3" fill="#FFFFFF" stroke="#EF4444" stroke-width="1"/>
+  <text x="522" y="750" text-anchor="middle" font-size="11" fill="#7F1D1D">Firebase FCM</text>
+  
+  <rect x="620" y="735" width="165" height="22" rx="3" fill="#FFFFFF" stroke="#EF4444" stroke-width="1"/>
+  <text x="702" y="750" text-anchor="middle" font-size="11" fill="#7F1D1D">Unifonic SMS</text>
+  
+  <rect x="800" y="735" width="180" height="22" rx="3" fill="#FFFFFF" stroke="#EF4444" stroke-width="1"/>
+  <text x="890" y="750" text-anchor="middle" font-size="11" fill="#7F1D1D">AWS CloudWatch</text>
+
+  <!-- Arrow definition -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+</svg>
