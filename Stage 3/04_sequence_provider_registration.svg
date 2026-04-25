@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 850" font-family="Arial, sans-serif">
+  <rect width="1200" height="850" fill="#F8FAFC"/>
+  
+  <text x="600" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">Sequence Diagram — Provider Registration &amp; Approval</text>
+  <text x="600" y="55" text-anchor="middle" font-size="13" fill="#64748B">Use Case #1: Service provider registers and gets approval from admin</text>
+
+  <!-- Actor/System headers -->
+  <g>
+    <rect x="50" y="85" width="140" height="45" rx="4" fill="#0891B2"/>
+    <text x="120" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Provider</text>
+    <text x="120" y="120" text-anchor="middle" font-size="10" fill="#E0F2FE">(User)</text>
+  </g>
+  
+  <g>
+    <rect x="220" y="85" width="140" height="45" rx="4" fill="#0EA5E9"/>
+    <text x="290" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">React Portal</text>
+    <text x="290" y="120" text-anchor="middle" font-size="10" fill="#E0F2FE">(Frontend)</text>
+  </g>
+  
+  <g>
+    <rect x="390" y="85" width="140" height="45" rx="4" fill="#10B981"/>
+    <text x="460" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Django API</text>
+    <text x="460" y="120" text-anchor="middle" font-size="10" fill="#ECFDF5">(Backend)</text>
+  </g>
+  
+  <g>
+    <rect x="560" y="85" width="140" height="45" rx="4" fill="#A855F7"/>
+    <text x="630" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">MySQL</text>
+    <text x="630" y="120" text-anchor="middle" font-size="10" fill="#FAE8FF">(Database)</text>
+  </g>
+  
+  <g>
+    <rect x="730" y="85" width="140" height="45" rx="4" fill="#EF4444"/>
+    <text x="800" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">AWS S3</text>
+    <text x="800" y="120" text-anchor="middle" font-size="10" fill="#FEF2F2">(File Storage)</text>
+  </g>
+  
+  <g>
+    <rect x="900" y="85" width="140" height="45" rx="4" fill="#7C3AED"/>
+    <text x="970" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Admin</text>
+    <text x="970" y="120" text-anchor="middle" font-size="10" fill="#F3E8FF">(Dashboard)</text>
+  </g>
+  
+  <g>
+    <rect x="1050" y="85" width="120" height="45" rx="4" fill="#F59E0B"/>
+    <text x="1110" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">FCM</text>
+    <text x="1110" y="120" text-anchor="middle" font-size="10" fill="#FEF3C7">(Push)</text>
+  </g>
+
+  <!-- Lifelines -->
+  <line x1="120" y1="130" x2="120" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="290" y1="130" x2="290" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="460" y1="130" x2="460" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="630" y1="130" x2="630" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="800" y1="130" x2="800" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="970" y1="130" x2="970" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="1110" y1="130" x2="1110" y2="810" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+  <!-- ===== Step 1: Fill form ===== -->
+  <line x1="120" y1="165" x2="285" y2="165" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <text x="200" y="158" text-anchor="middle" font-size="11" fill="#334155">1. Fill registration form + upload documents</text>
+  
+  <!-- ===== Step 2: Upload files to S3 ===== -->
+  <line x1="290" y1="200" x2="795" y2="200" stroke="#0284C7" stroke-width="2" marker-end="url(#ab)"/>
+  <text x="540" y="193" text-anchor="middle" font-size="11" fill="#0284C7">2. POST /s3/upload (CR + ID docs)</text>
+  <line x1="800" y1="230" x2="295" y2="230" stroke="#0284C7" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#ac)"/>
+  <text x="540" y="223" text-anchor="middle" font-size="10" fill="#0284C7" font-style="italic">returns file URLs</text>
+  
+  <!-- ===== Step 3: Submit form to API ===== -->
+  <line x1="290" y1="265" x2="455" y2="265" stroke="#059669" stroke-width="2" marker-end="url(#ad)"/>
+  <text x="372" y="258" text-anchor="middle" font-size="11" fill="#059669">3. POST /api/providers/register</text>
+  <text x="372" y="282" text-anchor="middle" font-size="10" fill="#059669" font-style="italic">{business_name, docs_urls, location}</text>
+  
+  <!-- ===== Step 4: Validate ===== -->
+  <rect x="455" y="300" width="10" height="30" fill="#10B981"/>
+  <text x="475" y="318" font-size="11" fill="#10B981">4. Validate data + hash password</text>
+  
+  <!-- ===== Step 5: Insert in DB ===== -->
+  <line x1="460" y1="345" x2="625" y2="345" stroke="#7E22CE" stroke-width="2" marker-end="url(#ae)"/>
+  <text x="542" y="338" text-anchor="middle" font-size="11" fill="#7E22CE">5. INSERT provider_profiles (status='pending')</text>
+  <line x1="630" y1="375" x2="465" y2="375" stroke="#7E22CE" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#af)"/>
+  <text x="542" y="368" text-anchor="middle" font-size="10" fill="#7E22CE" font-style="italic">returns provider_id</text>
+
+  <!-- ===== Step 6: Create notification for admin ===== -->
+  <line x1="460" y1="410" x2="625" y2="410" stroke="#7E22CE" stroke-width="2" marker-end="url(#ag)"/>
+  <text x="542" y="403" text-anchor="middle" font-size="11" fill="#7E22CE">6. INSERT notification (user_type=admin)</text>
+
+  <!-- ===== Step 7: Response to frontend ===== -->
+  <line x1="460" y1="445" x2="295" y2="445" stroke="#059669" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#ah)"/>
+  <text x="377" y="438" text-anchor="middle" font-size="11" fill="#059669">7. 201 Created — "Pending approval"</text>
+  
+  <!-- ===== Step 8: Show confirmation ===== -->
+  <line x1="290" y1="480" x2="125" y2="480" stroke="#334155" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#ai)"/>
+  <text x="207" y="473" text-anchor="middle" font-size="11" fill="#334155">8. Show "Request received" screen</text>
+
+  <!-- Separator -->
+  <line x1="50" y1="510" x2="1170" y2="510" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="600" y="528" text-anchor="middle" font-size="12" font-weight="bold" fill="#64748B">--- Later: Admin reviews the request ---</text>
+
+  <!-- ===== Step 9: Admin fetches pending ===== -->
+  <line x1="970" y1="560" x2="465" y2="560" stroke="#7C3AED" stroke-width="2" marker-end="url(#aj)"/>
+  <text x="717" y="553" text-anchor="middle" font-size="11" fill="#7C3AED">9. GET /api/admin/providers/pending</text>
+  
+  <line x1="460" y1="590" x2="625" y2="590" stroke="#7E22CE" stroke-width="2" marker-end="url(#ak)"/>
+  <text x="542" y="583" text-anchor="middle" font-size="10" fill="#7E22CE">SELECT * WHERE status='pending'</text>
+  <line x1="630" y1="615" x2="465" y2="615" stroke="#7E22CE" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#al)"/>
+  
+  <line x1="465" y1="645" x2="965" y2="645" stroke="#7C3AED" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#am)"/>
+  <text x="717" y="638" text-anchor="middle" font-size="11" fill="#7C3AED">10. List of providers + their documents</text>
+
+  <!-- ===== Step 11: Admin approves ===== -->
+  <line x1="970" y1="680" x2="465" y2="680" stroke="#7C3AED" stroke-width="2" marker-end="url(#an)"/>
+  <text x="717" y="673" text-anchor="middle" font-size="11" fill="#7C3AED">11. PATCH /api/admin/providers/{id}/approve</text>
+  
+  <line x1="460" y1="710" x2="625" y2="710" stroke="#7E22CE" stroke-width="2" marker-end="url(#ao)"/>
+  <text x="542" y="703" text-anchor="middle" font-size="11" fill="#7E22CE">12. UPDATE status='approved'</text>
+
+  <!-- ===== Step 13: Trigger FCM ===== -->
+  <line x1="460" y1="745" x2="1105" y2="745" stroke="#D97706" stroke-width="2" marker-end="url(#ap)"/>
+  <text x="782" y="738" text-anchor="middle" font-size="11" fill="#D97706">13. Send FCM Push notification (via Celery)</text>
+  
+  <!-- ===== Step 14: Push to provider ===== -->
+  <line x1="1110" y1="780" x2="125" y2="780" stroke="#D97706" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#aq)"/>
+  <text x="617" y="773" text-anchor="middle" font-size="11" fill="#D97706">14. Notification: "Account approved! Start accepting orders"</text>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0284C7"/></marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0284C7"/></marker>
+    <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="ai" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="aj" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+    <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+    <marker id="aq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+  </defs>
+</svg>
