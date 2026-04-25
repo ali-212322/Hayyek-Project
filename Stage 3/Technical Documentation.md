@@ -8,9 +8,9 @@
 | **Project Name** | Hayyak |
 | **Project Type** | Multi-interface Digital Platform (Web + Mobile) |
 | **Stage** | Stage 3 — Technical Documentation |
-| **Document Version** | 1.1 (MySQL Edition) |
+| **Document Version** | 1.1 |
 | **Date** | April 2026 |
-| **Database** | MySQL 8.0+ with InnoDB Engine |
+| **Database** | MySQL with InnoDB Engine |
 
 ---
 
@@ -123,6 +123,7 @@ Stories are prioritized for MVP implementation:
 6. **Admin Dashboard** — provider approvals, statistics, dispute management
 
 > 📎 **Note:** Interactive Figma mockup files are available separately, and static screenshots are included in `/diagrams/mockups/`.
+> https://www.figma.com/board/M5evKXOQRPWefJ4P6xAkvZ/hayyekk?node-id=2843-2334&t=4b6yoSdUVysG7h62-1
 
 ---
 
