@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Arial, sans-serif">
+  <rect width="1200" height="900" fill="#F8FAFC"/>
+  
+  <!-- Title -->
+  <text x="600" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">Class Diagram — Backend Models (Django)</text>
+  <text x="600" y="55" text-anchor="middle" font-size="13" fill="#64748B">Key classes, attributes, and methods</text>
+
+  <!-- ============ User (Parent) ============ -->
+  <g>
+    <rect x="450" y="90" width="260" height="220" rx="6" fill="#FFFFFF" stroke="#0891B2" stroke-width="2"/>
+    <rect x="450" y="90" width="260" height="30" rx="6" fill="#0891B2"/>
+    <text x="580" y="110" text-anchor="middle" font-size="14" font-weight="bold" fill="#FFFFFF">User (AbstractBaseUser)</text>
+    
+    <text x="462" y="138" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="462" y="154" font-size="11" fill="#334155">+ phone: CharField(15) [unique]</text>
+    <text x="462" y="170" font-size="11" fill="#334155">+ email: EmailField [unique]</text>
+    <text x="462" y="186" font-size="11" fill="#334155">+ password: CharField [hashed]</text>
+    <text x="462" y="202" font-size="11" fill="#334155">+ full_name: CharField(100)</text>
+    <text x="462" y="218" font-size="11" fill="#334155">+ user_type: Choice(RES|PRV|ADM)</text>
+    <text x="462" y="234" font-size="11" fill="#334155">+ is_active: Boolean</text>
+    <text x="462" y="250" font-size="11" fill="#334155">+ is_verified: Boolean</text>
+    <text x="462" y="266" font-size="11" fill="#334155">+ created_at: DateTime</text>
+    <line x1="456" y1="274" x2="704" y2="274" stroke="#0891B2" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="462" y="290" font-size="11" fill="#334155">+ check_password(raw): bool</text>
+    <text x="462" y="304" font-size="11" fill="#334155">+ generate_otp(): str</text>
+  </g>
+
+  <!-- ============ ResidentProfile ============ -->
+  <g>
+    <rect x="60" y="370" width="240" height="140" rx="6" fill="#FFFFFF" stroke="#10B981" stroke-width="2"/>
+    <rect x="60" y="370" width="240" height="28" rx="6" fill="#10B981"/>
+    <text x="180" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">ResidentProfile</text>
+    
+    <text x="72" y="416" font-size="11" fill="#334155">+ user: OneToOne(User)</text>
+    <text x="72" y="432" font-size="11" fill="#334155">+ neighborhood: FK(Neighborhood)</text>
+    <text x="72" y="448" font-size="11" fill="#334155">+ default_address: TextField</text>
+    <text x="72" y="464" font-size="11" fill="#334155">+ default_lat: Decimal(10,7)</text>
+    <text x="72" y="480" font-size="11" fill="#334155">+ default_lng: Decimal(10,7)</text>
+    <line x1="66" y1="488" x2="294" y2="488" stroke="#10B981" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="72" y="502" font-size="11" fill="#334155">+ nearby_providers(radius): List</text>
+  </g>
+
+  <!-- ============ ProviderProfile ============ -->
+  <g>
+    <rect x="330" y="370" width="260" height="230" rx="6" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
+    <rect x="330" y="370" width="260" height="28" rx="6" fill="#F59E0B"/>
+    <text x="460" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">ProviderProfile</text>
+    
+    <text x="342" y="416" font-size="11" fill="#334155">+ user: OneToOne(User)</text>
+    <text x="342" y="432" font-size="11" fill="#334155">+ business_name: CharField(150)</text>
+    <text x="342" y="448" font-size="11" fill="#334155">+ commercial_register: CharField</text>
+    <text x="342" y="464" font-size="11" fill="#334155">+ id_document_url: URLField</text>
+    <text x="342" y="480" font-size="11" fill="#334155">+ logo_url: URLField</text>
+    <text x="342" y="496" font-size="11" fill="#334155">+ neighborhood: FK(Neighborhood)</text>
+    <text x="342" y="512" font-size="11" fill="#334155">+ location_lat: Decimal(10,7)</text>
+    <text x="342" y="528" font-size="11" fill="#334155">+ location_lng: Decimal(10,7)</text>
+    <text x="342" y="544" font-size="11" fill="#334155">+ status: Choice(PEND|APPR|REJ)</text>
+    <text x="342" y="560" font-size="11" fill="#334155">+ is_available: Boolean</text>
+    <text x="342" y="576" font-size="11" fill="#334155">+ avg_rating: Decimal(3,2)</text>
+    <line x1="336" y1="584" x2="584" y2="584" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="342" y="596" font-size="11" fill="#334155">+ approve() / reject(reason)</text>
+  </g>
+
+  <!-- ============ AdminProfile ============ -->
+  <g>
+    <rect x="620" y="370" width="240" height="140" rx="6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="620" y="370" width="240" height="28" rx="6" fill="#7C3AED"/>
+    <text x="740" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">AdminProfile</text>
+    
+    <text x="632" y="416" font-size="11" fill="#334155">+ user: OneToOne(User)</text>
+    <text x="632" y="432" font-size="11" fill="#334155">+ role: Choice(SUPER|MOD)</text>
+    <text x="632" y="448" font-size="11" fill="#334155">+ permissions: JSONField</text>
+    <line x1="626" y1="458" x2="854" y2="458" stroke="#7C3AED" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="632" y="472" font-size="11" fill="#334155">+ approve_provider(id)</text>
+    <text x="632" y="488" font-size="11" fill="#334155">+ suspend_user(id, reason)</text>
+    <text x="632" y="504" font-size="11" fill="#334155">+ resolve_complaint(id)</text>
+  </g>
+
+  <!-- ============ ServiceCategory ============ -->
+  <g>
+    <rect x="900" y="370" width="240" height="120" rx="6" fill="#FFFFFF" stroke="#EC4899" stroke-width="2"/>
+    <rect x="900" y="370" width="240" height="28" rx="6" fill="#EC4899"/>
+    <text x="1020" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">ServiceCategory</text>
+    
+    <text x="912" y="416" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="912" y="432" font-size="11" fill="#334155">+ name_ar: CharField(100)</text>
+    <text x="912" y="448" font-size="11" fill="#334155">+ name_en: CharField(100)</text>
+    <text x="912" y="464" font-size="11" fill="#334155">+ icon_url: URLField</text>
+    <text x="912" y="480" font-size="11" fill="#334155">+ is_active: Boolean</text>
+  </g>
+
+  <!-- ============ Service ============ -->
+  <g>
+    <rect x="60" y="600" width="260" height="190" rx="6" fill="#FFFFFF" stroke="#14B8A6" stroke-width="2"/>
+    <rect x="60" y="600" width="260" height="28" rx="6" fill="#14B8A6"/>
+    <text x="190" y="619" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">Service</text>
+    
+    <text x="72" y="646" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="72" y="662" font-size="11" fill="#334155">+ provider: FK(ProviderProfile)</text>
+    <text x="72" y="678" font-size="11" fill="#334155">+ category: FK(ServiceCategory)</text>
+    <text x="72" y="694" font-size="11" fill="#334155">+ title: CharField(200)</text>
+    <text x="72" y="710" font-size="11" fill="#334155">+ description: TextField</text>
+    <text x="72" y="726" font-size="11" fill="#334155">+ price: Decimal(10,2)</text>
+    <text x="72" y="742" font-size="11" fill="#334155">+ price_type: Choice(FIX|HR|UNIT)</text>
+    <text x="72" y="758" font-size="11" fill="#334155">+ estimated_time: Integer</text>
+    <text x="72" y="774" font-size="11" fill="#334155">+ is_available: Boolean</text>
+  </g>
+
+  <!-- ============ Order ============ -->
+  <g>
+    <rect x="360" y="650" width="280" height="230" rx="6" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+    <rect x="360" y="650" width="280" height="28" rx="6" fill="#DC2626"/>
+    <text x="500" y="669" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">Order</text>
+    
+    <text x="372" y="696" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="372" y="712" font-size="11" fill="#334155">+ order_number: CharField [uniq]</text>
+    <text x="372" y="728" font-size="11" fill="#334155">+ resident: FK(User)</text>
+    <text x="372" y="744" font-size="11" fill="#334155">+ provider: FK(User)</text>
+    <text x="372" y="760" font-size="11" fill="#334155">+ service: FK(Service)</text>
+    <text x="372" y="776" font-size="11" fill="#334155">+ status: Choice(PEND|ACC|IN|DONE)</text>
+    <text x="372" y="792" font-size="11" fill="#334155">+ delivery_address: TextField</text>
+    <text x="372" y="808" font-size="11" fill="#334155">+ price: Decimal(10,2)</text>
+    <text x="372" y="824" font-size="11" fill="#334155">+ payment_status: Choice</text>
+    <line x1="366" y1="832" x2="634" y2="832" stroke="#DC2626" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="372" y="846" font-size="11" fill="#334155">+ accept() / reject() / cancel()</text>
+    <text x="372" y="862" font-size="11" fill="#334155">+ start() / complete()</text>
+  </g>
+
+  <!-- ============ Payment ============ -->
+  <g>
+    <rect x="680" y="650" width="240" height="160" rx="6" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2"/>
+    <rect x="680" y="650" width="240" height="28" rx="6" fill="#8B5CF6"/>
+    <text x="800" y="669" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">Payment</text>
+    
+    <text x="692" y="696" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="692" y="712" font-size="11" fill="#334155">+ order: FK(Order)</text>
+    <text x="692" y="728" font-size="11" fill="#334155">+ amount: Decimal(10,2)</text>
+    <text x="692" y="744" font-size="11" fill="#334155">+ payment_method: CharField</text>
+    <text x="692" y="760" font-size="11" fill="#334155">+ gateway_transaction_id: Char</text>
+    <text x="692" y="776" font-size="11" fill="#334155">+ status: Choice(PEND|OK|FAIL)</text>
+    <text x="692" y="792" font-size="11" fill="#334155">+ paid_at: DateTime</text>
+  </g>
+
+  <!-- ============ Review ============ -->
+  <g>
+    <rect x="960" y="600" width="200" height="160" rx="6" fill="#FFFFFF" stroke="#F97316" stroke-width="2"/>
+    <rect x="960" y="600" width="200" height="28" rx="6" fill="#F97316"/>
+    <text x="1060" y="619" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">Review</text>
+    
+    <text x="972" y="646" font-size="11" fill="#334155">+ id: BigInteger [PK]</text>
+    <text x="972" y="662" font-size="11" fill="#334155">+ order: OneToOne(Order)</text>
+    <text x="972" y="678" font-size="11" fill="#334155">+ resident: FK(User)</text>
+    <text x="972" y="694" font-size="11" fill="#334155">+ provider: FK(User)</text>
+    <text x="972" y="710" font-size="11" fill="#334155">+ rating: Integer [1-5]</text>
+    <text x="972" y="726" font-size="11" fill="#334155">+ comment: TextField</text>
+    <text x="972" y="742" font-size="11" fill="#334155">+ provider_reply: TextField</text>
+  </g>
+
+  <!-- Relationships -->
+  <!-- User to ResidentProfile -->
+  <line x1="450" y1="220" x2="180" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <text x="260" y="300" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  
+  <!-- User to ProviderProfile -->
+  <line x1="550" y1="310" x2="460" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <text x="485" y="345" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  
+  <!-- User to AdminProfile -->
+  <line x1="640" y1="310" x2="740" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <text x="700" y="345" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  
+  <!-- ProviderProfile to Service (1..N) -->
+  <line x1="400" y1="600" x2="240" y2="600" stroke="#475569" stroke-width="1.5"/>
+  <text x="310" y="595" font-size="10" fill="#475569" font-style="italic">1..N</text>
+  
+  <!-- ServiceCategory to Service -->
+  <line x1="960" y1="490" x2="280" y2="600" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="600" y="525" font-size="10" fill="#475569" font-style="italic">categorizes (1..N)</text>
+  
+  <!-- Service to Order -->
+  <line x1="280" y1="770" x2="360" y2="770" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  
+  <!-- Order to Payment -->
+  <line x1="640" y1="740" x2="680" y2="740" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <text x="645" y="735" font-size="10" fill="#475569" font-style="italic">1..1</text>
+  
+  <!-- Order to Review -->
+  <line x1="640" y1="700" x2="960" y2="700" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <text x="800" y="695" font-size="10" fill="#475569" font-style="italic">1..1</text>
+
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+</svg>
