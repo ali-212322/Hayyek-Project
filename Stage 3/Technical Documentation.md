@@ -260,26 +260,6 @@ src/
 
 ![ERD](./diagrams/03_erd.svg)
 
-### 4.5 MySQL Syntax Conversion Reference
-
-The following table summarizes all PostgreSQL-to-MySQL syntax changes applied throughout the schema:
-
-| PostgreSQL | MySQL 8.0 Equivalent | Notes |
-|---|---|---|
-| `BIGSERIAL PRIMARY KEY` | `BIGINT AUTO_INCREMENT PRIMARY KEY` | Auto-increment PK |
-| `BOOLEAN DEFAULT TRUE` | `TINYINT(1) DEFAULT 1` | Django maps BooleanField to TINYINT(1) |
-| `BOOLEAN DEFAULT FALSE` | `TINYINT(1) DEFAULT 0` | |
-| `TIMESTAMP DEFAULT NOW()` | `DATETIME DEFAULT CURRENT_TIMESTAMP` | MySQL uses DATETIME for timezone-aware columns |
-| `CHECK (col IN (...))` | `ENUM(...)` | Native enum type in MySQL; more efficient |
-| `CHECK (price >= 0)` | `CONSTRAINT chk_price CHECK (price >= 0)` | MySQL 8.0+ enforces CHECK constraints |
-| `CHECK (rating BETWEEN 1 AND 5)` | `CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5)` | MySQL 8.0+ |
-| `TEXT` (unlimited) | `TEXT` | Same — MySQL TEXT holds up to 65,535 bytes |
-| `REFERENCES t(col)` | `REFERENCES t(col)` | Identical; InnoDB enforces FK constraints |
-| `CREATE INDEX ... ON t(col DESC)` | `CREATE INDEX ... ON t(col DESC)` | Supported in MySQL 8.0+ |
-| `SERIAL` | `INT AUTO_INCREMENT` | For INT-sized PKs |
-| `VARCHAR(n)` | `VARCHAR(n) CHARACTER SET utf8mb4` | Explicit charset for Arabic + emoji support |
-
-> **Important:** Always use `ENGINE=InnoDB` and `CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci` for all tables to ensure Arabic text support, emoji handling, and foreign key enforcement.
 
 ---
 
