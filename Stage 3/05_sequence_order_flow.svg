@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 880" font-family="Arial, sans-serif">
+  <rect width="1200" height="880" fill="#F8FAFC"/>
+  
+  <text x="600" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#0F172A">Sequence Diagram — Order Creation &amp; Tracking</text>
+  <text x="600" y="55" text-anchor="middle" font-size="13" fill="#64748B">Use Case #2: Create a service order and track it in real-time</text>
+
+  <!-- Participants -->
+  <g>
+    <rect x="40" y="85" width="130" height="45" rx="4" fill="#0891B2"/>
+    <text x="105" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Resident</text>
+    <text x="105" y="120" text-anchor="middle" font-size="10" fill="#E0F2FE">(User)</text>
+  </g>
+  
+  <g>
+    <rect x="200" y="85" width="130" height="45" rx="4" fill="#0EA5E9"/>
+    <text x="265" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Mobile App</text>
+    <text x="265" y="120" text-anchor="middle" font-size="10" fill="#E0F2FE">(React Native)</text>
+  </g>
+  
+  <g>
+    <rect x="360" y="85" width="130" height="45" rx="4" fill="#10B981"/>
+    <text x="425" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Django API</text>
+    <text x="425" y="120" text-anchor="middle" font-size="10" fill="#ECFDF5">(Backend)</text>
+  </g>
+  
+  <g>
+    <rect x="520" y="85" width="130" height="45" rx="4" fill="#A855F7"/>
+    <text x="585" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">MySQL</text>
+    <text x="585" y="120" text-anchor="middle" font-size="10" fill="#FAE8FF">(Database)</text>
+  </g>
+
+  <g>
+    <rect x="680" y="85" width="130" height="45" rx="4" fill="#14B8A6"/>
+    <text x="745" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">WS Channel</text>
+    <text x="745" y="120" text-anchor="middle" font-size="10" fill="#CCFBF1">(Django Channels)</text>
+  </g>
+  
+  <g>
+    <rect x="840" y="85" width="130" height="45" rx="4" fill="#F59E0B"/>
+    <text x="905" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Celery</text>
+    <text x="905" y="120" text-anchor="middle" font-size="10" fill="#FEF3C7">(Worker)</text>
+  </g>
+  
+  <g>
+    <rect x="1000" y="85" width="160" height="45" rx="4" fill="#DC2626"/>
+    <text x="1080" y="104" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Provider App</text>
+    <text x="1080" y="120" text-anchor="middle" font-size="10" fill="#FEE2E2">(React Portal)</text>
+  </g>
+
+  <!-- Lifelines -->
+  <line x1="105" y1="130" x2="105" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="265" y1="130" x2="265" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="425" y1="130" x2="425" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="585" y1="130" x2="585" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="745" y1="130" x2="745" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="905" y1="130" x2="905" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="1080" y1="130" x2="1080" y2="840" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+  <!-- ===== Phase 1: Create Order ===== -->
+  <rect x="40" y="150" width="1120" height="24" rx="3" fill="#E0F2FE" opacity="0.5"/>
+  <text x="50" y="167" font-size="11" font-weight="bold" fill="#0C4A6E">Phase 1 — Create Order</text>
+
+  <!-- 1 -->
+  <line x1="105" y1="195" x2="260" y2="195" stroke="#334155" stroke-width="2" marker-end="url(#b1)"/>
+  <text x="182" y="188" text-anchor="middle" font-size="10" fill="#334155">1. Select service + set address</text>
+  
+  <!-- 2 -->
+  <line x1="265" y1="225" x2="420" y2="225" stroke="#059669" stroke-width="2" marker-end="url(#b2)"/>
+  <text x="342" y="218" text-anchor="middle" font-size="10" fill="#059669">2. POST /api/orders (JWT)</text>
+  
+  <!-- 3 -->
+  <rect x="420" y="240" width="10" height="25" fill="#10B981"/>
+  <text x="435" y="255" font-size="10" fill="#10B981">3. Validate service + provider availability</text>
+  
+  <!-- 4 -->
+  <line x1="425" y1="285" x2="580" y2="285" stroke="#7E22CE" stroke-width="2" marker-end="url(#b3)"/>
+  <text x="502" y="278" text-anchor="middle" font-size="10" fill="#7E22CE">4. INSERT orders (status='pending')</text>
+  <line x1="585" y1="310" x2="430" y2="310" stroke="#7E22CE" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#b4)"/>
+  <text x="507" y="303" text-anchor="middle" font-size="9" fill="#7E22CE" font-style="italic">returns order_id + order_number</text>
+
+  <!-- 5 -->
+  <line x1="425" y1="340" x2="270" y2="340" stroke="#059669" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#b5)"/>
+  <text x="347" y="333" text-anchor="middle" font-size="10" fill="#059669">5. 201 Created — redirect to payment</text>
+
+  <!-- ===== Phase 2: Notify Provider ===== -->
+  <rect x="40" y="360" width="1120" height="24" rx="3" fill="#FEF3C7" opacity="0.5"/>
+  <text x="50" y="377" font-size="11" font-weight="bold" fill="#78350F">Phase 2 — Notify the Provider (after payment)</text>
+
+  <!-- 6 -->
+  <line x1="425" y1="405" x2="900" y2="405" stroke="#D97706" stroke-width="2" marker-end="url(#b6)"/>
+  <text x="662" y="398" text-anchor="middle" font-size="10" fill="#D97706">6. Queue task: notify_provider(order_id)</text>
+  
+  <!-- 7 -->
+  <line x1="905" y1="435" x2="1075" y2="435" stroke="#D97706" stroke-width="2" marker-end="url(#b7)"/>
+  <text x="990" y="428" text-anchor="middle" font-size="10" fill="#D97706">7. Push (FCM) + In-app notif</text>
+  
+  <!-- ===== Phase 3: Provider Accepts ===== -->
+  <rect x="40" y="455" width="1120" height="24" rx="3" fill="#FEE2E2" opacity="0.5"/>
+  <text x="50" y="472" font-size="11" font-weight="bold" fill="#7F1D1D">Phase 3 — Provider Accepts the Order</text>
+
+  <!-- 8 -->
+  <line x1="1080" y1="500" x2="430" y2="500" stroke="#DC2626" stroke-width="2" marker-end="url(#b8)"/>
+  <text x="755" y="493" text-anchor="middle" font-size="10" fill="#DC2626">8. PATCH /api/orders/{id}/accept</text>
+  
+  <!-- 9 -->
+  <line x1="425" y1="530" x2="580" y2="530" stroke="#7E22CE" stroke-width="2" marker-end="url(#b9)"/>
+  <text x="502" y="523" text-anchor="middle" font-size="10" fill="#7E22CE">9. UPDATE status='accepted'</text>
+
+  <!-- 10 -->
+  <line x1="425" y1="565" x2="740" y2="565" stroke="#0D9488" stroke-width="2" marker-end="url(#b10)"/>
+  <text x="582" y="558" text-anchor="middle" font-size="10" fill="#0D9488">10. Broadcast to WS channel (order:{id})</text>
+  
+  <!-- 11 -->
+  <line x1="745" y1="595" x2="270" y2="595" stroke="#0D9488" stroke-width="2" marker-end="url(#b11)"/>
+  <text x="507" y="588" text-anchor="middle" font-size="10" fill="#0D9488">11. WS event: "order_accepted"</text>
+
+  <!-- 12 -->
+  <line x1="265" y1="625" x2="110" y2="625" stroke="#334155" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#b12)"/>
+  <text x="187" y="618" text-anchor="middle" font-size="10" fill="#334155">12. Update screen: "Order accepted"</text>
+
+  <!-- ===== Phase 4: In Progress ===== -->
+  <rect x="40" y="645" width="1120" height="24" rx="3" fill="#ECFDF5" opacity="0.7"/>
+  <text x="50" y="662" font-size="11" font-weight="bold" fill="#064E3B">Phase 4 — Execute and Complete the Service</text>
+
+  <!-- 13 -->
+  <line x1="1080" y1="690" x2="430" y2="690" stroke="#DC2626" stroke-width="2" marker-end="url(#b13)"/>
+  <text x="755" y="683" text-anchor="middle" font-size="10" fill="#DC2626">13. PATCH /orders/{id}/start → then /complete</text>
+
+  <!-- 14 -->
+  <line x1="425" y1="725" x2="580" y2="725" stroke="#7E22CE" stroke-width="2" marker-end="url(#b14)"/>
+  <text x="502" y="718" text-anchor="middle" font-size="10" fill="#7E22CE">14. UPDATE status='completed'</text>
+
+  <!-- 15 -->
+  <line x1="425" y1="760" x2="740" y2="760" stroke="#0D9488" stroke-width="2" marker-end="url(#b15)"/>
+  <text x="582" y="753" text-anchor="middle" font-size="10" fill="#0D9488">15. Broadcast "order_completed" via WebSocket</text>
+
+  <!-- 16 -->
+  <line x1="745" y1="790" x2="270" y2="790" stroke="#0D9488" stroke-width="2" marker-end="url(#b16)"/>
+  <text x="507" y="783" text-anchor="middle" font-size="10" fill="#0D9488">16. WS event → show "Review" screen</text>
+
+  <!-- 17 -->
+  <line x1="265" y1="820" x2="110" y2="820" stroke="#334155" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#b17)"/>
+  <text x="187" y="813" text-anchor="middle" font-size="10" fill="#334155">17. Submit review (POST /reviews)</text>
+
+  <defs>
+    <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="b4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="b5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="b6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+    <marker id="b7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+    <marker id="b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+    <marker id="b9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="b10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+    <marker id="b11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+    <marker id="b12" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="b13" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+    <marker id="b14" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7E22CE"/></marker>
+    <marker id="b15" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+    <marker id="b16" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+    <marker id="b17" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+  </defs>
+</svg>
