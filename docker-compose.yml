@@ -40,6 +40,9 @@ services:
         condition: service_healthy
     env_file:
       - ./backend/.env
+    environment:
+      STATIC_URL: "/static/"
+      MEDIA_URL: "/media/"
     ports:
       - "8000:8000"
     volumes:

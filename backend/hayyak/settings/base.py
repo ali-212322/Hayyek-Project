@@ -4,9 +4,9 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = config("SECRET_KEY")
-DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="").split(",")
+SECRET_KEY = config("SECRET_KEY", default="dev-secret-key")
+DEBUG = config("DEBUG", default=True, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -136,19 +136,21 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_MINUTES", default=60, cast=int)),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_DAYS", default=30, cast=int)),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": config("SECRET_KEY"),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
 
-CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:5173,http://localhost:5174").split(",")
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:5173,http://localhost:5174"
+).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 CELERY_BROKER_URL = config("REDIS_URL", default="redis://localhost:6379/2")
@@ -168,4 +170,19 @@ MOYASAR_SECRET_KEY = config("MOYASAR_SECRET_KEY", default="")
 MOYASAR_PUBLISHABLE_KEY = config("MOYASAR_PUBLISHABLE_KEY", default="")
 FIREBASE_SERVER_KEY = config("FIREBASE_SERVER_KEY", default="")
 UNIFONIC_APP_SID = config("UNIFONIC_APP_SID", default="")
-UNIFONIC_
+UNIFONIC_SENDER_ID = config("UNIFONIC_SENDER_ID", default="Hayyak")
+
+OTP_EXPIRY_MINUTES = 10
+OTP_LENGTH = 6
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Riyadh"
+USE_I18N = True
+USE_TZ = True
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
