@@ -1,2 +1,6 @@
 from django.urls import path
-urlpatterns = []
+from .views import MeView
+
+urlpatterns = [
+    path("me/", MeView.as_view(), name="user-me"),
+]
