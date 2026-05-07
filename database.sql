@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS services (
 -- Sample Data (Seed)
 -- =========================
 INSERT INTO users (name) VALUES
-('Ahmed'),
+('Faisal'),
 ('Mohammed');
 
 INSERT INTO services (name, price) VALUES
