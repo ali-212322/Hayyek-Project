@@ -3,7 +3,7 @@ import useAuth from "../../hooks/useAuth";
 import C from "../../styles/colors";
 
 function LoginPage({ onLogin, onBack, onRegister }) {
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -13,7 +13,7 @@ function LoginPage({ onLogin, onBack, onRegister }) {
   const handleLogin = async () => {
     setLocalError("");
     try {
-      const response = await login({ email, password });
+      const response = await login({ phone, password });
       const userType = response.user?.role || "resident";
       onLogin(userType);
     } catch (err) {
@@ -61,15 +61,15 @@ function LoginPage({ onLogin, onBack, onRegister }) {
           <div className="divider"><span>or sign in with email</span></div>
 
           <div className="form-grp">
-            <label className="label">Email address</label>
+            <label className="label">Phone number</label>
             <div className="input-wrap">
-              <span className="input-icon">✉️</span>
-              <input 
-                className="input input-padded" 
-                type="email" 
-                placeholder="you@example.com" 
-                value={email} 
-                onChange={e=>setEmail(e.target.value)}
+              <span className="input-icon">📱</span>
+              <input
+                className="input input-padded"
+                type="tel"
+                placeholder="+966 50 123 4567"
+                value={phone}
+                onChange={e=>setPhone(e.target.value)}
                 disabled={loading}
               />
             </div>
@@ -112,7 +112,7 @@ function LoginPage({ onLogin, onBack, onRegister }) {
           <button 
             className="btn-login" 
             onClick={handleLogin} 
-            disabled={loading || !email || !password}
+            disabled={loading || !phone || !password}
           >
             {loading ? <>⏳ Signing in…</> : "Sign in to my neighborhood →"}
           </button>

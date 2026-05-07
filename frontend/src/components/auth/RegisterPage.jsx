@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import useAuth from "../../hooks/useAuth";
 
 function RegisterPage({ onRegisterSuccess, onBack }) {
-  const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -10,11 +9,9 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [role, setRole] = useState("resident");
   const [showPw, setShowPw] = useState(false);
-  const [otp, setOtp] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const { register, sendOTP, verifyOTP, loading, error } = useAuth();
+  const { register, loading, error } = useAuth();
   const [localError, setLocalError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   const handleRegister = async () => {
     setLocalError("");
@@ -33,22 +30,9 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
     }
     try {
       await register({ full_name: fullName, email, phone, password, password_confirm: passwordConfirm, role });
-      setSuccessMsg("Registration successful! Please verify your phone number.");
-      setStep(2);
+      onRegisterSuccess(role);
     } catch (err) {
       setLocalError(err.message || "Registration failed");
-    }
-  };
-
-  const handleVerifyOTP = async () => {
-    setLocalError("");
-    if (!otp) { setLocalError("Please enter the OTP"); return; }
-    try {
-      await verifyOTP(phone, otp);
-      setSuccessMsg("Phone verified! Redirecting...");
-      setTimeout(() => onRegisterSuccess(role), 1500);
-    } catch (err) {
-      setLocalError(err.message || "OTP verification failed");
     }
   };
 
@@ -89,8 +73,7 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
       {/* RIGHT */}
       <div className="login-right">
         <div className="login-card">
-          {step === 1 ? (
-            <>
+          <>
               <div className="login-header">
                 <div className="login-eyebrow">Get started for free</div>
                 <h1>Join Hayyekk</h1>
@@ -98,7 +81,6 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
               </div>
 
               {(error || localError) && <div className="err-toast">⚠️ {error || localError}</div>}
-              {successMsg && <div className="success-toast">✅ {successMsg}</div>}
 
               {/* Role selector */}
               <div className="register-role-select">
@@ -225,47 +207,6 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
                 <button onClick={onBack} disabled={loading}>Sign in</button>
               </div>
             </>
-          ) : (
-            <>
-              <div className="login-header">
-                <div className="login-eyebrow">One last step</div>
-                <h1>Verify Your Phone</h1>
-                <p>We sent a 6-digit code to <strong>{phone}</strong></p>
-              </div>
-
-              {(error || localError) && <div className="err-toast">⚠️ {error || localError}</div>}
-              {successMsg && <div className="success-toast">✅ {successMsg}</div>}
-
-              <div className="form-grp">
-                <label className="label">Verification Code</label>
-                <input
-                  className="input otp-input"
-                  type="text"
-                  placeholder="000000"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  disabled={loading}
-                  maxLength="6"
-                />
-              </div>
-
-              <button
-                className="btn-login"
-                onClick={handleVerifyOTP}
-                disabled={loading || otp.length !== 6}
-              >
-                {loading ? <>⏳ Verifying…</> : "Verify & Continue →"}
-              </button>
-
-              <button className="btn-secondary" onClick={() => sendOTP(phone).catch(e => setLocalError(e.message || "Could not resend code."))} disabled={loading}>
-                Resend Code
-              </button>
-
-              <button className="btn-text" onClick={() => setStep(1)} disabled={loading}>
-                ← Back to Details
-              </button>
-            </>
-          )}
         </div>
         <div className="login-right-foot">© 2026 Hayyekk · <a href="#" style={{ color: "inherit" }}>Privacy</a></div>
       </div>
