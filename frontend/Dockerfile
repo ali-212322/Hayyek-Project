@@ -1,26 +1,11 @@
-# Use an official Node.js runtime as a parent image
 FROM node:18-alpine
-
-# Set the working directory in the container
 WORKDIR /app
-
-# Copy package.json and package-lock.json
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the rest of the application code
 COPY . .
-
-# Build the application
 RUN npm run build
-
-# Install a simple web server to serve the static files
+RUN CSS_FILE=$(ls /app/dist/assets/*.css) && \
+    echo ":root{--gd:#2D6A4F;--gm:#40916C;--gf:#52B788;--gl:#D8F3DC;--cream:#FAFAF7;--white:#FFFFFF;--sand:#F2EFE9;--ink:#1A1A2E;--muted:#6B7280;--light:#9CA3AF;--border:#E5E7EB;--warn:#F59E0B;--err:#EF4444;--info:#3B82F6}" | cat - $CSS_FILE > /tmp/patched.css && mv /tmp/patched.css $CSS_FILE
 RUN npm install -g serve
-
-# Expose the port the app runs on
 EXPOSE 3000
-
-# Command to run the application
 CMD ["serve", "-s", "dist", "-l", "3000"]
