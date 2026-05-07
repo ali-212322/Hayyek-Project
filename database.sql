@@ -1,6 +1,5 @@
 -- =========================
--- Hayyek Project Database
--- Initial Clean Setup
+-- Hayyek Database - Clean Structure
 -- =========================
 
 CREATE DATABASE IF NOT EXISTS hayyek
@@ -10,12 +9,23 @@ COLLATE utf8mb4_unicode_ci;
 USE hayyek;
 
 -- =========================
+-- Neighborhoods Table
+-- =========================
+CREATE TABLE IF NOT EXISTS neighborhoods (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- =========================
 -- Users Table
 -- =========================
 CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    neighborhood_id INT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (neighborhood_id) REFERENCES neighborhoods(id)
+        ON DELETE SET NULL
 );
 
 -- =========================
@@ -29,12 +39,38 @@ CREATE TABLE IF NOT EXISTS services (
 );
 
 -- =========================
--- Sample Data (Seed)
+-- Orders Table (Requests)
 -- =========================
-INSERT INTO users (name) VALUES
-('Faisal'),
-('Mohammed');
+CREATE TABLE IF NOT EXISTS orders (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    service_id INT UNSIGNED NOT NULL,
+    status ENUM('pending','in_progress','completed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (service_id) REFERENCES services(id)
+        ON DELETE CASCADE
+);
+
+-- =========================
+-- Seed Data
+-- =========================
+
+INSERT INTO neighborhoods (name) VALUES
+('Al Narjis'),
+('Al Malqa'),
+('Al Yasmin');
+
+INSERT INTO users (name, neighborhood_id) VALUES
+('Faisal', 1),
+('Mohammed', 2);
 
 INSERT INTO services (name, price) VALUES
-('Home Cleaning', 50.00),
-('Delivery Service', 20.00);
+('Cleaning', 50.00),
+('Delivery', 20.00),
+('Plumbing', 80.00);
+
+INSERT INTO orders (user_id, service_id, status) VALUES
+(1, 1, 'pending'),
+(2, 2, 'completed');
