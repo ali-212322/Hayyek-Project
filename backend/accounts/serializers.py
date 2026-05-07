@@ -58,6 +58,12 @@ class HayyakTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        phone = attrs.get(self.username_field)
+        if phone:
+            try:
+                attrs[self.username_field] = validate_saudi_phone(phone)
+            except serializers.ValidationError:
+                pass
         data = super().validate(attrs)
         user = self.user
         if user.is_suspended:
