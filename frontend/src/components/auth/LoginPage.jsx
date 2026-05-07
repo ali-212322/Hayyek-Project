@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import C from "../../styles/colors";
 
-function LoginPage({ onLogin, onBack }) {
+function LoginPage({ onLogin, onBack, onRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -14,7 +14,7 @@ function LoginPage({ onLogin, onBack }) {
     setLocalError("");
     try {
       const response = await login({ email, password });
-      const userType = response.data?.user?.role || response.user?.role || "resident";
+      const userType = response.user?.role || "resident";
       onLogin(userType);
     } catch (err) {
       setLocalError(err.message || "Login failed. Please try again.");
@@ -117,7 +117,7 @@ function LoginPage({ onLogin, onBack }) {
             {loading ? <>⏳ Signing in…</> : "Sign in to my neighborhood →"}
           </button>
           <div className="login-footer">
-            New to Hayyekk? <button onClick={onBack} disabled={loading}>Join your neighborhood</button>
+            New to Hayyekk? <button onClick={onRegister} disabled={loading}>Join your neighborhood</button>
           </div>
         </div>
         <div className="login-right-foot">© 2026 Hayyekk · <a href="#" style={{ color:"inherit" }}>Privacy</a></div>

@@ -4,7 +4,7 @@
  * Backend URL: http://localhost:8000/api/v1/
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
 class APIService {
   constructor() {
@@ -58,7 +58,7 @@ class APIService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || error.message || "API Error");
+        throw new Error(error.error?.message || error.detail || error.message || "API Error");
       }
 
       return await response.json();
@@ -99,18 +99,18 @@ class APIService {
    * POST /auth/otp-verify/
    */
   async verifyOTP(phone, otp) {
-    return this.request("/auth/otp-verify/", {
+    return this.request("/auth/otp/verify/", {
       method: "POST",
-      body: JSON.stringify({ phone, otp }),
+      body: JSON.stringify({ phone, otp_code: otp }),
     });
   }
 
   /**
-   * Send OTP
-   * POST /auth/otp-send/
+   * Send OTP (resend)
+   * POST /auth/otp/send/
    */
   async sendOTP(phone) {
-    return this.request("/auth/otp-send/", {
+    return this.request("/auth/otp/send/", {
       method: "POST",
       body: JSON.stringify({ phone }),
     });

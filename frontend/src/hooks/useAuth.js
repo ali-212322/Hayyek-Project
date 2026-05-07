@@ -49,18 +49,21 @@ export const useAuth = () => {
     setError(null);
     try {
       const response = await api.login(credentials);
-      const { access, refresh, user: userData } = response.data || response;
+      const { access, refresh } = response.data || response;
 
       // Store tokens
       api.setToken(access);
       localStorage.setItem("refresh_token", refresh);
 
-      // Set user data
+      // Fetch user profile to get role and other data
+      const userResponse = await api.getCurrentUser();
+      const userData = userResponse.data || userResponse;
       setUser(userData);
       setIsAuthenticated(true);
 
-      return response;
+      return { ...response, user: userData };
     } catch (err) {
+      api.clearToken();
       setError(err.message);
       throw err;
     } finally {
@@ -101,16 +104,6 @@ export const useAuth = () => {
     setError(null);
     try {
       const response = await api.verifyOTP(phone, otp);
-      const { access, refresh, user: userData } = response.data || response;
-
-      // Store tokens
-      api.setToken(access);
-      localStorage.setItem("refresh_token", refresh);
-
-      // Set user data
-      setUser(userData);
-      setIsAuthenticated(true);
-
       return response;
     } catch (err) {
       setError(err.message);
