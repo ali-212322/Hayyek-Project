@@ -1,3 +1,46 @@
+:root {
+  --gd: #2D6A4F;
+  --gm: #40916C;
+  --gf: #52B788;
+  --gl: #D8F3DC;
+  --cream: #FAFAF7;
+  --white: #FFFFFF;
+  --sand: #F2EFE9;
+  --ink: #1A1A2E;
+  --muted: #6B7280;
+  --light: #9CA3AF;
+  --border: #E5E7EB;
+  --warn: #F59E0B;
+  --err: #EF4444;
+  --info: #3B82F6;
+  --green-deep: #2D6A4F;
+  --green-mid: #40916C;
+  --green-fresh: #52B788;
+  --green-light: #D8F3DC;
+  --surface: #FFFFFF;
+  --text: #1A1A2E;
+  --text-muted: #6B7280;
+  --text-light: #9CA3AF;
+}
+
+
+:root {
+  --gd: #2D6A4F;
+  --gm: #40916C;
+  --gf: #52B788;
+  --gl: #D8F3DC;
+  --cream: #FAFAF7;
+  --white: #FFFFFF;
+  --sand: #F2EFE9;
+  --ink: #1A1A2E;
+  --muted: #6B7280;
+  --light: #9CA3AF;
+  --border: #E5E7EB;
+  --warn: #F59E0B;
+  --err: #EF4444;
+  --info: #3B82F6;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Reem+Kufi:wght@400;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
