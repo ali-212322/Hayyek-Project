@@ -15,7 +15,6 @@ function RegisterPage({ onRegisterSuccess, onBack }) {
 
   const handleRegister = async () => {
     setLocalError("");
-    setSuccessMsg("");
     if (!fullName || !email || !phone || !password) {
       setLocalError("Please fill in all fields");
       return;

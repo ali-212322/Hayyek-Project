@@ -30,7 +30,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate_phone(self, value):
-        return validate_saudi_phone(value)
+        value = validate_saudi_phone(value)
+        if User.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("A user with this phone number already exists.")
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
 
     def validate_role(self, value):
         if value == "admin":

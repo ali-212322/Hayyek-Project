@@ -57,7 +57,12 @@ class APIService {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        let error;
+        try {
+          error = await response.json();
+        } catch {
+          throw new Error(`Server error (${response.status})`);
+        }
         throw new Error(error.error?.message || error.detail || error.message || "API Error");
       }
 
