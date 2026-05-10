@@ -27,6 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "role": {"required": False},
             "email": {"required": False},
+            "phone": {"validators": []},
         }
 
     def validate_phone(self, value):
@@ -36,7 +37,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if value and User.objects.filter(email=value).exists():
+        if not value:
+            return None
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with this email already exists.")
         return value
 

@@ -63,6 +63,16 @@ class APIService {
         } catch {
           throw new Error(`Server error (${response.status})`);
         }
+        const details = error.error?.details;
+        if (details && typeof details === "object") {
+          const fieldErrors = Object.entries(details)
+            .map(([field, msgs]) => {
+              const msg = Array.isArray(msgs) ? msgs[0] : msgs;
+              return `${field}: ${msg}`;
+            })
+            .join(" | ");
+          throw new Error(fieldErrors || error.error?.message || "API Error");
+        }
         throw new Error(error.error?.message || error.detail || error.message || "API Error");
       }
 

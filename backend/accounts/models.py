@@ -12,8 +12,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Phone number is required.")
         extra_fields.setdefault("is_active", True)
         user = self.model(phone=phone, **extra_fields)
-        if password:
-            user.set_password(password)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
