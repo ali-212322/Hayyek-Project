@@ -1,3 +1,12 @@
 from django.urls import path
+from .admin_views import (
+    AdminProviderListView,
+    AdminUserListView,
+    AdminStatsView,
+)
 
-urlpatterns = []  # Week 4: admin KPI endpoints
+urlpatterns = [
+    path("providers/", AdminProviderListView.as_view(), name="admin-providers"),
+    path("users/", AdminUserListView.as_view(), name="admin-users"),
+    path("stats/", AdminStatsView.as_view(), name="admin-stats"),
+]
