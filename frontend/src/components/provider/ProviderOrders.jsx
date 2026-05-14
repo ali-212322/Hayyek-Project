@@ -119,8 +119,4 @@ function ProviderOrders({ onBack }) {
   );
 }
 
-export default ProviderOrders;.po-action-btn:hover { opacity:0.85; }
-.po-accept { background:var(--green); color:#fff; }
-.po-cancel { background:#fee2e2; color:#b91c1c; }
-
-.po-card-id { margin-top:14px; padding-top:12px; border-top:1px solid #f3f4f6; font-size:0.72rem; color:#9ca3af; }
+export default ProviderOrders;
