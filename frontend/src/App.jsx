@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+// frontend/src/App.jsx
+import React, { useState } from "react";
 
 import Landing from "./components/landing/Landing";
 import LoginPage from "./components/auth/LoginPage";
@@ -10,56 +10,52 @@ import ProviderProfile from "./components/provider/ProviderProfile";
 import ProviderSettings from "./components/provider/ProviderSettings";
 import ProviderReviews from "./components/provider/ProviderReviews";
 import ProviderEarnings from "./components/provider/ProviderEarnings";
+import ProviderOrders from "./components/provider/ProviderOrders";      // NEW
 
 import AdminDashboard from "./components/admin/AdminDashboard";
 
+import ResidentHome from "./components/resident/ResidentHome";           // NEW
+import ResidentProfile from "./components/resident/ResidentProfile";     // NEW
+import ResidentOrders from "./components/resident/ResidentOrders";       // NEW
+import ResidentSettings from "./components/resident/ResidentSettings";   // NEW
 import ServiceDetails from "./components/resident/ServiceDetails";
 import OrderTracking from "./components/resident/OrderTracking";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
+  const [view, setView] = useState("landing");
+  const [providerView, setProviderView] = useState("dashboard");
+  const [residentView, setResidentView] = useState("home");
+  const [orderDetails, setOrderDetails] = useState(null);
 
-        {/* 🏠 Public */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+  const handleLogin = (role) => {
+    if (role === "provider") {
+      setProviderView("dashboard");
+      setView("provider");
+    } else if (role === "admin") {
+      setView("admin");
+    } else {
+      // default → resident
+      setResidentView("home");
+      setView("resident");
+    }
+  };
 
-        {/* 🧑‍🔧 Provider Dashboard */}
-        <Route path="/provider" element={<ProviderDashboard />} />
-        <Route path="/provider/profile" element={<ProviderProfile />} />
-        <Route path="/provider/settings" element={<ProviderSettings />} />
-        <Route path="/provider/reviews" element={<ProviderReviews />} />
-        <Route path="/provider/earnings" element={<ProviderEarnings />} />
+  const handleRegisterSuccess = () => setView("login");
 
-        {/* 🛠 Admin */}
-        <Route path="/admin" element={<AdminDashboard />} />
-
-        {/* 🏠 Resident flow */}
-        <Route path="/service" element={<ServiceDetails />} />
-        <Route path="/track" element={<OrderTracking />} />
-
-        {/* 🔁 fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
-
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default App;  const handleTrackOrder = (details) => {
+  const handleTrackOrder = (details) => {
     setOrderDetails(details);
     setView("orderTracking");
   };
 
   const renderView = () => {
     switch (view) {
+
+      // ── Public ───────────────────────────────────────────────
       case "landing":
         return (
           <Landing
             goLogin={() => setView("login")}
-            goService={() => setView("serviceDetails")}
+            goService={() => { setResidentView("home"); setView("resident"); }}
           />
         );
 
@@ -80,28 +76,70 @@ export default App;  const handleTrackOrder = (details) => {
           />
         );
 
-      // 👇 PROVIDER MODULE (NOW WITH SUB-PAGES)
-      case "provider":
-        switch (providerView) {
+      // ── Resident Module ───────────────────────────────────────
+      case "resident":
+        switch (residentView) {
           case "profile":
             return (
-              <ProviderProfile onBack={() => setProviderView("dashboard")} />
+              <ResidentProfile
+                onBack={() => setResidentView("home")}
+                onNavigate={(v) => setResidentView(v)}
+              />
+            );
+
+          case "orders":
+            return (
+              <ResidentOrders
+                onBack={() => setResidentView("home")}
+                onNavigate={(v) => setResidentView(v)}
+              />
             );
 
           case "settings":
             return (
-              <ProviderSettings onBack={() => setProviderView("dashboard")} />
+              <ResidentSettings
+                onBack={() => setResidentView("home")}
+              />
             );
+
+          case "serviceDetails":
+            return (
+              <ServiceDetails
+                onTrackOrder={handleTrackOrder}
+                onBack={() => setResidentView("home")}
+              />
+            );
+
+          case "home":
+          default:
+            return (
+              <ResidentHome
+                onNavigate={(v) => {
+                  // map view names to residentView keys
+                  setResidentView(v);
+                }}
+                onBack={() => setView("login")}
+              />
+            );
+        }
+
+      // ── Provider Module ───────────────────────────────────────
+      case "provider":
+        switch (providerView) {
+          case "profile":
+            return <ProviderProfile onBack={() => setProviderView("dashboard")} />;
+
+          case "settings":
+            return <ProviderSettings onBack={() => setProviderView("dashboard")} />;
 
           case "reviews":
-            return (
-              <ProviderReviews onBack={() => setProviderView("dashboard")} />
-            );
+            return <ProviderReviews onBack={() => setProviderView("dashboard")} />;
 
           case "earnings":
-            return (
-              <ProviderEarnings onBack={() => setProviderView("dashboard")} />
-            );
+            return <ProviderEarnings onBack={() => setProviderView("dashboard")} />;
+
+          case "orders":                                                // NEW
+            return <ProviderOrders onBack={() => setProviderView("dashboard")} />;
 
           case "dashboard":
           default:
@@ -113,9 +151,11 @@ export default App;  const handleTrackOrder = (details) => {
             );
         }
 
+      // ── Admin ─────────────────────────────────────────────────
       case "admin":
         return <AdminDashboard onBack={() => setView("login")} />;
 
+      // ── Legacy / standalone ───────────────────────────────────
       case "serviceDetails":
         return (
           <ServiceDetails
@@ -136,7 +176,7 @@ export default App;  const handleTrackOrder = (details) => {
         return (
           <Landing
             goLogin={() => setView("login")}
-            goService={() => setView("serviceDetails")}
+            goService={() => { setResidentView("home"); setView("resident"); }}
           />
         );
     }
