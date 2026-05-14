@@ -1,40 +1,125 @@
-/* frontend/src/components/provider/ProviderOrders.css */
-:root { --green:#2D6A4F; --green-pale:#d8f3dc; }
-* { box-sizing:border-box; margin:0; padding:0; }
+import React, { useState } from "react";
+import "./ProviderOrders.css";
+import { ORDERS_DATA } from "../../data/providerData";
 
-.po-root { min-height:100vh; background:#f8faf8; font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; }
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
+  { key: "accepted", label: "Accepted" },
+  { key: "inprogress", label: "In Progress" },
+  { key: "completed", label: "Completed" },
+  { key: "rejected", label: "Rejected" },
+];
 
-.po-header { background:var(--green); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; color:#fff; }
-.po-back { background:none; border:none; color:#fff; font-size:0.9rem; cursor:pointer; }
-.po-title { font-size:1.1rem; font-weight:700; }
+const STATUS_META = {
+  pending: { label: "Pending", bg: "#FEF3C7", color: "#92400E" },
+  accepted: { label: "Accepted", bg: "#D1FAE5", color: "#065F46" },
+  inprogress: { label: "In Progress", bg: "#DBEAFE", color: "#1E40AF" },
+  completed: { label: "Completed", bg: "#D8F3DC", color: "#2D6A4F" },
+  rejected: { label: "Rejected", bg: "#FEE2E2", color: "#991B1B" },
+};
 
-.po-container { max-width:640px; margin:0 auto; padding:24px 20px 60px; }
+function ProviderOrders({ onBack }) {
+  const [filter, setFilter] = useState("all");
+  const [orders, setOrders] = useState(ORDERS_DATA);
 
-.po-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
-.po-filter-btn { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:50px; border:2px solid var(--green-pale); background:#fff; color:var(--green); font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
-.po-filter-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
-.po-count { background:rgba(255,255,255,0.25); border-radius:20px; padding:1px 7px; font-size:0.72rem; }
-.po-filter-btn:not(.active) .po-count { background:var(--green-pale); color:var(--green); }
+  const filteredOrders = filter === "all"
+    ? orders
+    : orders.filter((order) => order.status === filter);
 
-.po-empty { text-align:center; padding:60px 20px; color:#6b7280; }
-.po-empty p:first-child { font-size:3rem; margin-bottom:12px; }
+  const countFor = (key) => key === "all"
+    ? orders.length
+    : orders.filter((order) => order.status === key).length;
 
-.po-list { display:flex; flex-direction:column; gap:16px; }
+  const updateOrder = (id, status) => {
+    setOrders((current) => current.map((order) => (
+      order.id === id ? { ...order, status } : order
+    )));
+  };
 
-.po-card { background:#fff; border-radius:16px; padding:20px; box-shadow:0 4px 16px rgba(45,106,79,0.09); border:1px solid #e8f4ed; }
-.po-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
-.po-card-top h3 { font-size:1rem; font-weight:700; color:#1a2e1a; }
-.po-category { font-size:0.78rem; color:#6b7280; margin-top:3px; }
-.po-status { font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+  return (
+    <div className="po-root">
+      <header className="po-header">
+        <button className="po-back" onClick={onBack}>← Back to dashboard</button>
+        <div className="po-title">Provider Orders</div>
+        <div />
+      </header>
 
-.po-rows { display:flex; flex-direction:column; gap:10px; }
-.po-row { display:flex; justify-content:space-between; gap:12px; font-size:0.85rem; }
-.po-row span:first-child { color:#6b7280; white-space:nowrap; }
-.po-row span:last-child { color:#1a2e1a; font-weight:500; text-align:right; }
+      <main className="po-container">
+        <div className="po-filters">
+          {FILTERS.map((item) => (
+            <button
+              key={item.key}
+              className={`po-filter-btn ${filter === item.key ? "active" : ""}`}
+              onClick={() => setFilter(item.key)}
+            >
+              {item.label}
+              <span className="po-count">{countFor(item.key)}</span>
+            </button>
+          ))}
+        </div>
 
-.po-actions { display:flex; gap:10px; margin-top:16px; }
-.po-action-btn { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
-.po-action-btn:hover { opacity:0.85; }
+        {filteredOrders.length === 0 ? (
+          <div className="po-empty">
+            <p>📭</p>
+            <p>No orders found for this filter.</p>
+          </div>
+        ) : (
+          <div className="po-list">
+            {filteredOrders.map((order) => {
+              const status = STATUS_META[order.status] || STATUS_META.pending;
+              return (
+                <article key={order.id} className="po-card">
+                  <div className="po-card-top">
+                    <div>
+                      <h3>{order.cust}</h3>
+                      <div className="po-category">{order.svc}</div>
+                    </div>
+                    <span
+                      className="po-status"
+                      style={{ background: status.bg, color: status.color }}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+
+                  <div className="po-rows">
+                    <div className="po-row"><span>Time</span><span>{order.time}</span></div>
+                    <div className="po-row"><span>Amount</span><span>{order.amt}</span></div>
+                    <div className="po-row"><span>Customer</span><span>{order.cust}</span></div>
+                  </div>
+
+                  {order.status === "pending" && (
+                    <div className="po-actions">
+                      <button className="po-action-btn po-accept" onClick={() => updateOrder(order.id, "accepted")}>Accept</button>
+                      <button className="po-action-btn po-cancel" onClick={() => updateOrder(order.id, "rejected")}>Reject</button>
+                    </div>
+                  )}
+
+                  {order.status === "accepted" && (
+                    <div className="po-actions">
+                      <button className="po-action-btn po-accept" onClick={() => updateOrder(order.id, "inprogress")}>Start order</button>
+                    </div>
+                  )}
+
+                  {order.status === "inprogress" && (
+                    <div className="po-actions">
+                      <button className="po-action-btn po-accept" onClick={() => updateOrder(order.id, "completed")}>Mark completed</button>
+                    </div>
+                  )}
+
+                  <div className="po-card-id">Order ID {order.id}</div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default ProviderOrders;.po-action-btn:hover { opacity:0.85; }
 .po-accept { background:var(--green); color:#fff; }
 .po-cancel { background:#fee2e2; color:#b91c1c; }
 
