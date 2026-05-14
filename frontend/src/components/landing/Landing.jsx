@@ -1,3 +1,4 @@
+import "./Landing.css";
 import React, { useState, useEffect } from "react";
 import PhoneMock from "./PhoneMock";
 import C from "../../styles/colors";
