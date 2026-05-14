@@ -1,0 +1,35 @@
+/* frontend/src/components/resident/ResidentOrders.css */
+:root { --green:#2D6A4F; --green-pale:#d8f3dc; }
+* { box-sizing:border-box; margin:0; padding:0; }
+
+.ro-root { min-height:100vh; background:#f8faf8; font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; }
+
+.ro-header { background:var(--green); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; color:#fff; }
+.ro-back { background:none; border:none; color:#fff; font-size:0.9rem; cursor:pointer; }
+.ro-title { font-size:1.1rem; font-weight:700; }
+
+.ro-container { max-width:640px; margin:0 auto; padding:24px 20px 60px; }
+
+.ro-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+.ro-filter-btn { padding:7px 16px; border-radius:50px; border:2px solid var(--green-pale); background:#fff; color:var(--green); font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.ro-filter-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+.ro-empty { text-align:center; padding:60px 20px; color:#6b7280; }
+.ro-empty p:first-child { font-size:3rem; margin-bottom:12px; }
+.ro-empty p { font-size:1rem; margin-bottom:20px; }
+.ro-browse-btn { background:var(--green); color:#fff; border:none; padding:12px 28px; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; }
+
+.ro-list { display:flex; flex-direction:column; gap:16px; }
+
+.ro-card { background:#fff; border-radius:16px; padding:20px; box-shadow:0 4px 16px rgba(45,106,79,0.09); border:1px solid #e8f4ed; }
+.ro-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+.ro-card-top h3 { font-size:1rem; font-weight:700; color:#1a2e1a; }
+.ro-category { font-size:0.78rem; color:#6b7280; margin-top:3px; }
+.ro-status { font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+
+.ro-card-rows { display:flex; flex-direction:column; gap:10px; }
+.ro-row { display:flex; justify-content:space-between; gap:12px; font-size:0.85rem; }
+.ro-row span:first-child { color:#6b7280; white-space:nowrap; }
+.ro-row span:last-child { color:#1a2e1a; font-weight:500; text-align:right; }
+
+.ro-card-id { margin-top:14px; padding-top:12px; border-top:1px solid #f3f4f6; font-size:0.72rem; color:#9ca3af; }
