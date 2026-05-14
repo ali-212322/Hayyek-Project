@@ -31,10 +31,34 @@ const cssVarsPlugin = {
 
 export default defineConfig({
   plugins: [react(), cssVarsPlugin],
+
   server: {
     port: 5173,
-    host: 'localhost',
+    host: true,          // ← was 'localhost' — must be true for Docker to expose it
     proxy: {
+      '/api': {
+        target: 'http://backend:8000',   // ← was localhost:8000
+        changeOrigin: true,              //   inside Docker, use the service name
+      },
+    },
+  },
+
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+        },
+      },
+    },
+  },
+
+  define: {
+    'process.env': {},
+  },
+})    proxy: {
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
