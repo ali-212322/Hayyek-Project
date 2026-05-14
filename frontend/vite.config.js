@@ -1,3 +1,4 @@
+cat > vite.config.js << 'EOF'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -31,10 +32,32 @@ const cssVarsPlugin = {
 
 export default defineConfig({
   plugins: [react(), cssVarsPlugin],
-
   server: {
     port: 5173,
-    host: true,          // ← was 'localhost' — must be true for Docker to expose it
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+        },
+      },
+    },
+  },
+  define: {
+    'process.env': {},
+  },
+})
+EOF    host: true,          // ← was 'localhost' — must be true for Docker to expose it
     proxy: {
       '/api': {
         target: 'http://backend:8000',   // ← was localhost:8000
