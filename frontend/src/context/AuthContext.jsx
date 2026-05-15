@@ -93,18 +93,23 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: "AUTH_START" });
     try {
       const response = await api.login(credentials);
-      const { access, refresh, user } = response.data || response;
+      const { access, refresh } = response.data || response;
 
       api.setToken(access);
       localStorage.setItem("refresh_token", refresh);
+
+      // Fetch full user profile to get role and details
+      const userResponse = await api.getCurrentUser();
+      const user = userResponse.data || userResponse;
 
       dispatch({
         type: "AUTH_SUCCESS",
         payload: { user, token: access },
       });
 
-      return response;
+      return { ...response, user };
     } catch (err) {
+      api.clearToken();
       dispatch({
         type: "AUTH_ERROR",
         payload: err.message,

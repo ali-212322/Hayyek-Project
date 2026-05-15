@@ -1,37 +1,52 @@
-// frontend/src/components/resident/ResidentSettings.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 import "./ResidentSettings.css";
 
-export default function ResidentSettings({ onBack }) {
+export default function ResidentSettings() {
+  const navigate = useNavigate();
+  const { logout, updateProfile, isLoading } = useAuth();
+
   const [notif, setNotif] = useState({ orders: true, promotions: false, reminders: true });
   const [lang, setLang] = useState("en");
   const [toast, setToast] = useState(false);
+  const [error, setError] = useState("");
 
-  const save = () => {
-    setToast(true);
-    setTimeout(() => setToast(false), 2500);
+  const save = async () => {
+    setError("");
+    try {
+      await updateProfile({ notification_preferences: notif, language: lang });
+      setToast(true);
+      setTimeout(() => setToast(false), 2500);
+    } catch (err) {
+      setError(err.message || "Failed to save settings.");
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   return (
     <div className="rs-root">
       <header className="rs-header">
-        <button className="rs-back" onClick={onBack}>← Back</button>
+        <button className="rs-back" onClick={() => navigate("/resident")}>← Back</button>
         <span className="rs-title">Settings</span>
         <div style={{ width: 60 }} />
       </header>
 
       <div className="rs-container">
+        {error && <div style={{ color: "#ef4444", background: "#fee2e2", padding: "10px 16px", borderRadius: "10px", marginBottom: "1rem", fontSize: "0.85rem" }}>⚠️ {error}</div>}
+
         {/* Account */}
         <section className="rs-section">
           <h2>Account</h2>
-          <button className="rs-row-btn">
+          <button className="rs-row-btn" onClick={() => navigate("/resident/profile")}>
+            <span>👤 Edit Profile</span><span className="rs-arrow">→</span>
+          </button>
+          <button className="rs-row-btn" disabled>
             <span>🔑 Change Password</span><span className="rs-arrow">→</span>
-          </button>
-          <button className="rs-row-btn">
-            <span>📧 Update Email</span><span className="rs-arrow">→</span>
-          </button>
-          <button className="rs-row-btn">
-            <span>📱 Update Phone</span><span className="rs-arrow">→</span>
           </button>
         </section>
 
@@ -63,7 +78,7 @@ export default function ResidentSettings({ onBack }) {
         <section className="rs-section">
           <h2>Language</h2>
           <div className="rs-lang-row">
-            {["en", "ar"].map((l) => (
+            {["en", "ar"].map(l => (
               <button
                 key={l}
                 className={`rs-lang-btn ${lang === l ? "active" : ""}`}
@@ -78,12 +93,14 @@ export default function ResidentSettings({ onBack }) {
         {/* Danger */}
         <section className="rs-section">
           <h2>Account Actions</h2>
-          <button className="rs-row-btn rs-danger">
-            <span>🗑️ Delete Account</span><span className="rs-arrow">→</span>
+          <button className="rs-row-btn rs-danger" onClick={handleLogout}>
+            <span>🚪 Logout</span><span className="rs-arrow">→</span>
           </button>
         </section>
 
-        <button className="rs-save-btn" onClick={save}>Save Changes</button>
+        <button className="rs-save-btn" onClick={save} disabled={isLoading}>
+          {isLoading ? "Saving…" : "Save Changes"}
+        </button>
       </div>
 
       {toast && <div className="rs-toast">Settings saved ✓</div>}

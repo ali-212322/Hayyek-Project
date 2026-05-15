@@ -1,89 +1,124 @@
-// frontend/src/components/provider/ProviderDashboard.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import C from "../../styles/colors";
-import { ORDERS_DATA, SVCS_DATA } from "../../data/providerData";
+import api from "../../services/api";
+import useAuth from "../../hooks/useAuth";
 
-function ProviderDashboard({ onBack, onNavigate }) {
-  const [available, setAvailable] = useState(true);
-  const [period, setPeriod] = useState("month");
-  const [svcs, setSvcs] = useState(SVCS_DATA);
-  const [orders, setOrders] = useState(ORDERS_DATA);
+const STATUS_META = {
+  pending: { label: "⏳ Pending", cls: "badge-pending" },
+  accepted: { label: "✅ Accepted", cls: "badge-accepted" },
+  in_progress: { label: "🔄 In Progress", cls: "badge-progress" },
+  completed: { label: "✔ Completed", cls: "badge-done" },
+  rejected: { label: "✗ Rejected", cls: "badge-rejected" },
+  cancelled: { label: "✗ Cancelled", cls: "badge-rejected" },
+};
+
+function ProviderDashboard() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const [provider, setProvider] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [services, setServices] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeNav, setActiveNav] = useState("Dashboard");
+  const [updatingOrder, setUpdatingOrder] = useState(null);
 
-  const updateOrder = (id, status) =>
-    setOrders((o) => o.map((ord) => (ord.id === id ? { ...ord, status } : ord)));
-  const toggleSvc = (i) =>
-    setSvcs((s) => s.map((sv, idx) => (idx === i ? { ...sv, on: !sv.on } : sv)));
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [providerRes, ordersRes, servicesRes, reviewsRes] = await Promise.all([
+        api.getMyProviderProfile().catch(() => null),
+        api.getOrders(),
+        api.getServices().catch(() => ({ data: [] })),
+        api.getReviews().catch(() => ({ data: [] })),
+      ]);
 
-  const statusLabel = {
-    pending: "⏳ Pending",
-    accepted: "✅ Accepted",
-    inprogress: "🔄 In Progress",
-    completed: "✔ Completed",
-    rejected: "✗ Rejected",
-  };
-  const statusCls = {
-    pending: "badge-pending",
-    accepted: "badge-accepted",
-    inprogress: "badge-progress",
-    completed: "badge-done",
-    rejected: "badge-rejected",
+      if (providerRes) setProvider(providerRes.data || providerRes);
+      setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : (ordersRes.data?.results || []));
+      setServices(Array.isArray(servicesRes.data) ? servicesRes.data : (servicesRes.data?.results || []));
+      setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : (reviewsRes.data?.results || []));
+    } catch (err) {
+      setError("Failed to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Map sidebar label → onNavigate key
-  const NAV_MAP = {
-    Dashboard: null,           // stay on this page
-    Orders: "orders",
-    "My Services": null,       // handled inline on dashboard
-    Earnings: "earnings",
-    Reviews: "reviews",
-    Settings: "settings",
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const updateOrder = async (id, status) => {
+    setUpdatingOrder(id);
+    try {
+      await api.updateOrderStatus(id, status);
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+    } catch (err) {
+      alert(err.message || "Failed to update order.");
+    } finally {
+      setUpdatingOrder(null);
+    }
   };
+
+  const toggleAvailability = async () => {
+    if (!provider) return;
+    try {
+      await api.updateProviderProfile({ is_available: !provider.is_available });
+      setProvider(p => ({ ...p, is_available: !p.is_available }));
+    } catch (err) {
+      console.error("Failed to toggle availability:", err);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const pendingCount = orders.filter(o => o.status === "pending").length;
+  const displayName = provider?.business_name || user?.full_name || "Provider";
+  const initials = displayName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
   const NAV = [
     { icon: "📊", label: "Dashboard" },
-    { icon: "📋", label: "Orders", badge: orders.filter((o) => o.status === "pending").length || null },
-    { icon: "🛍️", label: "My Services" },
-    { icon: "💰", label: "Earnings" },
-    { icon: "⭐", label: "Reviews" },
-    { icon: "⚙️", label: "Settings" },
+    { icon: "📋", label: "Orders", badge: pendingCount || null, path: "/provider/orders" },
+    { icon: "💰", label: "Earnings", path: "/provider/earnings" },
+    { icon: "⭐", label: "Reviews", path: "/provider/reviews" },
+    { icon: "⚙️", label: "Settings", path: "/provider/settings" },
   ];
 
-  const handleNav = (label) => {
-    setActiveNav(label);
-    const target = NAV_MAP[label];
-    if (target && onNavigate) onNavigate(target);
+  const handleNav = (item) => {
+    if (item.path) navigate(item.path);
+    else setActiveNav(item.label);
   };
 
-  const pendingCount = orders.filter((o) => o.status === "pending").length;
+  const recentOrders = orders.slice(0, 4);
+  const recentReviews = reviews.slice(0, 2);
 
   return (
     <div className="pd-shell">
-      {/* ── Sidebar ── */}
+      {/* Sidebar */}
       <aside className="sidebar pd-sidebar">
-        <div className="sidebar-logo">
-          حيّك<span>.</span>
-        </div>
+        <div className="sidebar-logo">حيّك<span>.</span></div>
 
         <div className="sidebar-provider-info">
-          <div className="sidebar-ava" style={{ background: C.gf, color: C.gd }}>
-            AH
-          </div>
-          <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#fff" }}>
-            Ahmad Al-Harbi
-          </div>
+          <div className="sidebar-ava" style={{ background: C.gf, color: C.gd }}>{initials}</div>
+          <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#fff" }}>{displayName}</div>
           <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,.45)", marginTop: ".1rem" }}>
             <span className="pd-online-dot" />
-            {available ? "Available" : "Busy"}
+            {provider?.is_available ? "Available" : "Busy"}
           </div>
         </div>
 
         <nav className="pd-nav" style={{ padding: "1.1rem 0", flex: 1 }}>
-          {NAV.map((n) => (
+          {NAV.map(n => (
             <div
               key={n.label}
               className={`sidebar-item ${activeNav === n.label ? "active" : ""}`}
-              onClick={() => handleNav(n.label)}
+              onClick={() => handleNav(n)}
               style={{ cursor: "pointer" }}
             >
               <span className="sidebar-icon">{n.icon}</span>
@@ -96,45 +131,30 @@ function ProviderDashboard({ onBack, onNavigate }) {
         <div className="sidebar-footer">
           <div className="avail-row">
             <div
-              className={`toggle-switch ${available ? "on" : "off"}`}
-              onClick={() => setAvailable((v) => !v)}
+              className={`toggle-switch ${provider?.is_available ? "on" : "off"}`}
+              onClick={toggleAvailability}
             />
             <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.65)" }}>
-              {available ? "I'm Available" : "Set as Busy"}
+              {provider?.is_available ? "I'm Available" : "Set as Busy"}
             </span>
           </div>
-          <div
-            className="sidebar-item"
-            onClick={onBack}
-            style={{ cursor: "pointer", marginTop: "8px", color: "rgba(255,100,100,0.75)" }}
-          >
+          <div className="sidebar-item" onClick={handleLogout} style={{ cursor: "pointer", marginTop: "8px", color: "rgba(255,100,100,0.75)" }}>
             <span className="sidebar-icon">🚪</span> Logout
           </div>
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* Main */}
       <main className="pd-main">
         <div className="pd-topbar">
           <div className="pd-topbar-title">Provider Dashboard</div>
           <div className="pd-topbar-r">
-            {/* Orders notification bell */}
-            <div
-              className="notif-btn"
-              onClick={() => { setActiveNav("Orders"); onNavigate && onNavigate("orders"); }}
-              style={{ cursor: "pointer", position: "relative" }}
-              title="View pending orders"
-            >
-              🔔
-              {pendingCount > 0 && <span className="notif-dot" />}
+            <div className="notif-btn" onClick={() => navigate("/provider/orders")} style={{ cursor: "pointer", position: "relative" }} title="View pending orders">
+              🔔{pendingCount > 0 && <span className="notif-dot" />}
             </div>
-            {/* Profile link */}
             <div
-              style={{
-                fontSize: ".82rem", color: C.muted, fontWeight: 600, cursor: "pointer",
-                padding: "6px 12px", borderRadius: "8px", border: `1px solid ${C.gf || "#d8f3dc"}`,
-              }}
-              onClick={() => { setActiveNav("Profile"); onNavigate && onNavigate("profile"); }}
+              style={{ fontSize: ".82rem", color: C.muted, fontWeight: 600, cursor: "pointer", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${C.gf || "#d8f3dc"}` }}
+              onClick={() => navigate("/provider/profile")}
             >
               👤 Profile
             </div>
@@ -144,220 +164,159 @@ function ProviderDashboard({ onBack, onNavigate }) {
           </div>
         </div>
 
-        <div className="pd-content">
-          {/* ── KPIs ── */}
-          <div className="kpi-grid">
-            {[
-              { icon: "📦", label: "Orders Today", val: "7", change: "↑ +2 vs yesterday", cls: "up" },
-              { icon: "💰", label: "Earnings Today", val: "SAR 640", change: "↑ +SAR 120", cls: "up" },
-              { icon: "⭐", label: "Avg. Rating", val: "4.8", change: "142 reviews", cls: "up" },
-              { icon: "✅", label: "Completion Rate", val: "96%", change: "↓ -1% this week", cls: "dn" },
-            ].map((k) => (
-              <div key={k.label} className="kpi-card">
-                <div className="kpi-icon">{k.icon}</div>
-                <div className="kpi-label">{k.label}</div>
-                <div className="kpi-val">{k.val}</div>
-                <div className={`kpi-change ${k.cls}`}>{k.change}</div>
-              </div>
-            ))}
-          </div>
+        {loading && <div style={{ padding: "2rem", textAlign: "center", color: C.muted }}>Loading dashboard…</div>}
+        {!loading && error && <div style={{ padding: "2rem", textAlign: "center", color: "#ef4444" }}>{error}</div>}
 
-          <div className="pd-grid">
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-
-              {/* ── INCOMING ORDERS ── */}
-              <div className="card">
-                <div className="card-header">
-                  <div>
-                    <div className="card-title">Incoming Orders</div>
-                    {pendingCount > 0 && (
-                      <div style={{ fontSize: ".75rem", color: "#f59e0b", marginTop: "2px" }}>
-                        {pendingCount} pending action{pendingCount > 1 ? "s" : ""}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    className="card-action"
-                    onClick={() => { setActiveNav("Orders"); onNavigate && onNavigate("orders"); }}
-                  >
-                    View all →
-                  </button>
+        {!loading && !error && (
+          <div className="pd-content">
+            {/* KPIs */}
+            <div className="kpi-grid">
+              {[
+                { icon: "📦", label: "Total Orders", val: orders.length, change: `${pendingCount} pending` },
+                { icon: "✅", label: "Completed", val: orders.filter(o => o.status === "completed").length, change: "orders done" },
+                { icon: "⭐", label: "Avg. Rating", val: provider?.avg_rating ? Number(provider.avg_rating).toFixed(1) : "—", change: `${reviews.length} reviews` },
+                { icon: "📋", label: "Pending", val: pendingCount, change: "need action", cls: pendingCount > 0 ? "up" : "" },
+              ].map(k => (
+                <div key={k.label} className="kpi-card">
+                  <div className="kpi-icon">{k.icon}</div>
+                  <div className="kpi-label">{k.label}</div>
+                  <div className="kpi-val">{k.val}</div>
+                  <div className={`kpi-change ${k.cls || ""}`}>{k.change}</div>
                 </div>
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Service</th>
-                        <th>Time</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map((o) => (
-                        <tr key={o.id}>
-                          <td><span className="order-id">{o.id}</span></td>
-                          <td>
-                            <div className="cust-row">
-                              <div className="mini-ava">{o.cust[0]}</div>
-                              {o.cust}
-                            </div>
-                          </td>
-                          <td>{o.svc}</td>
-                          <td style={{ color: C.muted, fontSize: ".8rem" }}>{o.time}</td>
-                          <td style={{ fontWeight: 700 }}>{o.amt}</td>
-                          <td>
-                            <span className={`badge ${statusCls[o.status]}`}>
-                              {statusLabel[o.status]}
-                            </span>
-                          </td>
-                          <td>
-                            {o.status === "pending" && (
-                              <div className="action-btns">
-                                <button className="btn-accept" onClick={() => updateOrder(o.id, "accepted")}>Accept</button>
-                                <button className="btn-reject" onClick={() => updateOrder(o.id, "rejected")}>Reject</button>
-                              </div>
-                            )}
-                            {o.status === "accepted" && (
-                              <button className="btn-accept" onClick={() => updateOrder(o.id, "inprogress")}>Start</button>
-                            )}
-                            {o.status === "inprogress" && (
-                              <button className="btn-primary" onClick={() => updateOrder(o.id, "completed")}>Complete</button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* ── MY SERVICES ── */}
-              <div className="card">
-                <div className="card-header">
-                  <div><div className="card-title">My Services</div></div>
-                  <button className="card-action">Add New →</button>
-                </div>
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead>
-                      <tr><th>Service</th><th>Price</th><th>Status</th><th>Action</th></tr>
-                    </thead>
-                    <tbody>
-                      {svcs.map((s, idx) => (
-                        <tr key={s.name}>
-                          <td>
-                            <div className="cust-row">{s.icon} {s.name}</div>
-                          </td>
-                          <td>{s.price}</td>
-                          <td>
-                            <span className={`badge ${s.on ? "badge-approved" : "badge-suspend"}`}>
-                              {s.on ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="action-btns">
-                              <button className="btn-ghost" onClick={() => toggleSvc(idx)}>
-                                {s.on ? "Deactivate" : "Activate"}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
+              ))}
             </div>
 
-            {/* ── RIGHT COLUMN ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div className="pd-grid">
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {/* Incoming Orders */}
+                <div className="card">
+                  <div className="card-header">
+                    <div>
+                      <div className="card-title">Recent Orders</div>
+                      {pendingCount > 0 && <div style={{ fontSize: ".75rem", color: "#f59e0b", marginTop: "2px" }}>{pendingCount} pending action{pendingCount > 1 ? "s" : ""}</div>}
+                    </div>
+                    <button className="card-action" onClick={() => navigate("/provider/orders")}>View all →</button>
+                  </div>
+                  {recentOrders.length === 0 ? (
+                    <div style={{ padding: "1.5rem", textAlign: "center", color: C.muted }}>No orders yet.</div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="data-table">
+                        <thead>
+                          <tr><th>Order #</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                          {recentOrders.map(o => {
+                            const meta = STATUS_META[o.status] || { label: o.status, cls: "badge-pending" };
+                            return (
+                              <tr key={o.id}>
+                                <td><span className="order-id">#{o.order_number || o.id}</span></td>
+                                <td>
+                                  <div className="cust-row">
+                                    <div className="mini-ava">{(o.resident_name || "?")[0]}</div>
+                                    {o.resident_name || "Customer"}
+                                  </div>
+                                </td>
+                                <td>{o.service_name || o.notes || "—"}</td>
+                                <td style={{ fontWeight: 700 }}>SAR {o.total_price || 0}</td>
+                                <td><span className={`badge ${meta.cls}`}>{meta.label}</span></td>
+                                <td>
+                                  {o.status === "pending" && (
+                                    <div className="action-btns">
+                                      <button className="btn-accept" onClick={() => updateOrder(o.id, "accepted")} disabled={updatingOrder === o.id}>Accept</button>
+                                      <button className="btn-reject" onClick={() => updateOrder(o.id, "rejected")} disabled={updatingOrder === o.id}>Reject</button>
+                                    </div>
+                                  )}
+                                  {o.status === "accepted" && (
+                                    <button className="btn-accept" onClick={() => updateOrder(o.id, "in_progress")} disabled={updatingOrder === o.id}>Start</button>
+                                  )}
+                                  {o.status === "in_progress" && (
+                                    <button className="btn-primary" onClick={() => updateOrder(o.id, "completed")} disabled={updatingOrder === o.id}>Complete</button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
 
-              {/* Earnings */}
-              <div className="card">
-                <div className="card-header">
-                  <div><div className="card-title">Earnings Overview</div></div>
-                  <div className="card-actions">
-                    {["week", "month", "year"].map((p) => (
-                      <button
-                        key={p}
-                        className={`btn-ghost ${period === p ? "active" : ""}`}
-                        onClick={() => setPeriod(p)}
-                      >
-                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                {/* My Services */}
+                <div className="card">
+                  <div className="card-header">
+                    <div><div className="card-title">My Services</div></div>
+                  </div>
+                  {services.length === 0 ? (
+                    <div style={{ padding: "1.5rem", textAlign: "center", color: C.muted }}>No services added yet.</div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="data-table">
+                        <thead><tr><th>Service</th><th>Price</th><th>Status</th></tr></thead>
+                        <tbody>
+                          {services.map(s => (
+                            <tr key={s.id}>
+                              <td>{s.name}</td>
+                              <td>SAR {s.price}</td>
+                              <td><span className={`badge ${s.is_active ? "badge-approved" : "badge-suspend"}`}>{s.is_active ? "Active" : "Inactive"}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right column */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {/* Reviews */}
+                <div className="card">
+                  <div className="card-header">
+                    <div><div className="card-title">Recent Reviews</div></div>
+                    <button className="card-action" onClick={() => navigate("/provider/reviews")}>View all →</button>
+                  </div>
+                  <div className="reviews-list" style={{ padding: "1.2rem 1.5rem" }}>
+                    {recentReviews.length === 0 ? (
+                      <div style={{ color: C.muted, textAlign: "center" }}>No reviews yet.</div>
+                    ) : (
+                      recentReviews.map(r => (
+                        <div className="review-card" key={r.id}>
+                          <div className="review-head">
+                            <div className="review-ava" style={{ background: C.gl, color: C.gd }}>{(r.resident_name || "?")[0]}</div>
+                            <div>
+                              <div className="review-name">{r.resident_name || "Customer"}</div>
+                              <div className="review-date">{new Date(r.created_at).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                          <div className="review-stars">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                          <p className="review-text">"{r.comment}"</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick links */}
+                <div className="card" style={{ padding: "1.2rem 1.5rem" }}>
+                  <div className="card-title" style={{ marginBottom: "12px" }}>Quick Links</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {[
+                      { icon: "👤", label: "My Profile", path: "/provider/profile" },
+                      { icon: "💰", label: "Earnings", path: "/provider/earnings" },
+                      { icon: "⚙️", label: "Settings", path: "/provider/settings" },
+                    ].map(({ icon, label, path }) => (
+                      <button key={path} className="btn-ghost" style={{ textAlign: "left", padding: "10px 14px", borderRadius: "10px" }} onClick={() => navigate(path)}>
+                        {icon} {label} →
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="chart-card">[Chart for {period}ly Earnings]</div>
-                <div style={{ textAlign: "center", marginTop: "8px", paddingBottom: "12px" }}>
-                  <button
-                    className="card-action"
-                    onClick={() => { setActiveNav("Earnings"); onNavigate && onNavigate("earnings"); }}
-                  >
-                    Full Earnings Report →
-                  </button>
-                </div>
               </div>
-
-              {/* Reviews */}
-              <div className="card">
-                <div className="card-header">
-                  <div><div className="card-title">Customer Reviews</div></div>
-                  <button
-                    className="card-action"
-                    onClick={() => { setActiveNav("Reviews"); onNavigate && onNavigate("reviews"); }}
-                  >
-                    View all →
-                  </button>
-                </div>
-                <div className="reviews-list" style={{ padding: "1.2rem 1.5rem" }}>
-                  {[
-                    { init: "SM", name: "Sara M.", date: "2 days ago", stars: "★★★★★", text: "Excellent service! Ahmad was prompt and fixed the AC quickly. Highly recommend." },
-                    { init: "NK", name: "Nasser K.", date: "1 week ago", stars: "★★★★☆", text: "Good cleaning service, but arrived a bit late. Overall satisfied." },
-                  ].map((r) => (
-                    <div className="review-card" key={r.name}>
-                      <div className="review-head">
-                        <div className="review-ava" style={{ background: C.gl, color: C.gd }}>{r.init}</div>
-                        <div>
-                          <div className="review-name">{r.name}</div>
-                          <div className="review-date">{r.date}</div>
-                        </div>
-                      </div>
-                      <div className="review-stars">{r.stars}</div>
-                      <p className="review-text">"{r.text}"</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick nav shortcuts */}
-              <div className="card" style={{ padding: "1.2rem 1.5rem" }}>
-                <div className="card-title" style={{ marginBottom: "12px" }}>Quick Links</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {[
-                    { icon: "👤", label: "My Profile", key: "profile" },
-                    { icon: "⚙️", label: "Settings", key: "settings" },
-                  ].map(({ icon, label, key }) => (
-                    <button
-                      key={key}
-                      className="btn-ghost"
-                      style={{ textAlign: "left", padding: "10px 14px", borderRadius: "10px" }}
-                      onClick={() => { onNavigate && onNavigate(key); }}
-                    >
-                      {icon} {label} →
-                    </button>
-                  ))}
-                </div>
-              </div>
-
             </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

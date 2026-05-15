@@ -1,5 +1,6 @@
-// frontend/src/App.jsx
-import React, { useState } from "react";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuthContext } from "./context/AuthContext";
 
 import Landing from "./components/landing/Landing";
 import LoginPage from "./components/auth/LoginPage";
@@ -10,179 +11,83 @@ import ProviderProfile from "./components/provider/ProviderProfile";
 import ProviderSettings from "./components/provider/ProviderSettings";
 import ProviderReviews from "./components/provider/ProviderReviews";
 import ProviderEarnings from "./components/provider/ProviderEarnings";
-import ProviderOrders from "./components/provider/ProviderOrders";      // NEW
+import ProviderOrders from "./components/provider/ProviderOrders";
 
 import AdminDashboard from "./components/admin/AdminDashboard";
 
-import ResidentHome from "./components/resident/ResidentHome";           // NEW
-import ResidentProfile from "./components/resident/ResidentProfile";     // NEW
-import ResidentOrders from "./components/resident/ResidentOrders";       // NEW
-import ResidentSettings from "./components/resident/ResidentSettings";   // NEW
-import ServiceDetails from "./components/resident/ServiceDetails";
-import OrderTracking from "./components/resident/OrderTracking";
+import ResidentHome from "./components/resident/ResidentHome";
+import ResidentProfile from "./components/resident/ResidentProfile";
+import ResidentOrders from "./components/resident/ResidentOrders";
+import ResidentSettings from "./components/resident/ResidentSettings";
+
+function ProtectedRoute({ children, allowedRole }) {
+  const { isAuthenticated, user, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "sans-serif", color: "#2D6A4F" }}>
+        Loading…
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRole && user?.role !== allowedRole) {
+    const home = user?.role === "provider" ? "/provider" : user?.role === "admin" ? "/admin" : "/resident";
+    return <Navigate to={home} replace />;
+  }
+
+  return children;
+}
+
+function AuthRedirect() {
+  const { isAuthenticated, user, isLoading } = useAuthContext();
+
+  if (isLoading) return null;
+
+  if (isAuthenticated && user) {
+    if (user.role === "provider") return <Navigate to="/provider" replace />;
+    if (user.role === "admin") return <Navigate to="/admin" replace />;
+    return <Navigate to="/resident" replace />;
+  }
+
+  return null;
+}
 
 function App() {
-  const [view, setView] = useState("landing");
-  const [providerView, setProviderView] = useState("dashboard");
-  const [residentView, setResidentView] = useState("home");
-  const [orderDetails, setOrderDetails] = useState(null);
+  return (
+    <div className="app-shell">
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-  const handleLogin = (role) => {
-    if (role === "provider") {
-      setProviderView("dashboard");
-      setView("provider");
-    } else if (role === "admin") {
-      setView("admin");
-    } else {
-      // default → resident
-      setResidentView("home");
-      setView("resident");
-    }
-  };
+        {/* Resident */}
+        <Route path="/resident" element={<ProtectedRoute allowedRole="resident"><ResidentHome /></ProtectedRoute>} />
+        <Route path="/resident/profile" element={<ProtectedRoute allowedRole="resident"><ResidentProfile /></ProtectedRoute>} />
+        <Route path="/resident/orders" element={<ProtectedRoute allowedRole="resident"><ResidentOrders /></ProtectedRoute>} />
+        <Route path="/resident/settings" element={<ProtectedRoute allowedRole="resident"><ResidentSettings /></ProtectedRoute>} />
 
-  const handleRegisterSuccess = () => setView("login");
+        {/* Provider */}
+        <Route path="/provider" element={<ProtectedRoute allowedRole="provider"><ProviderDashboard /></ProtectedRoute>} />
+        <Route path="/provider/orders" element={<ProtectedRoute allowedRole="provider"><ProviderOrders /></ProtectedRoute>} />
+        <Route path="/provider/profile" element={<ProtectedRoute allowedRole="provider"><ProviderProfile /></ProtectedRoute>} />
+        <Route path="/provider/earnings" element={<ProtectedRoute allowedRole="provider"><ProviderEarnings /></ProtectedRoute>} />
+        <Route path="/provider/reviews" element={<ProtectedRoute allowedRole="provider"><ProviderReviews /></ProtectedRoute>} />
+        <Route path="/provider/settings" element={<ProtectedRoute allowedRole="provider"><ProviderSettings /></ProtectedRoute>} />
 
-  const handleTrackOrder = (details) => {
-    setOrderDetails(details);
-    setView("orderTracking");
-  };
+        {/* Admin */}
+        <Route path="/admin" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
 
-  const renderView = () => {
-    switch (view) {
-
-      // ── Public ───────────────────────────────────────────────
-      case "landing":
-        return (
-          <Landing
-            goLogin={() => setView("login")}
-            goService={() => { setResidentView("home"); setView("resident"); }}
-          />
-        );
-
-      case "login":
-        return (
-          <LoginPage
-            onLogin={handleLogin}
-            onBack={() => setView("landing")}
-            onRegister={() => setView("register")}
-          />
-        );
-
-      case "register":
-        return (
-          <RegisterPage
-            onRegisterSuccess={handleRegisterSuccess}
-            onBack={() => setView("login")}
-          />
-        );
-
-      // ── Resident Module ───────────────────────────────────────
-      case "resident":
-        switch (residentView) {
-          case "profile":
-            return (
-              <ResidentProfile
-                onBack={() => setResidentView("home")}
-                onNavigate={(v) => setResidentView(v)}
-              />
-            );
-
-          case "orders":
-            return (
-              <ResidentOrders
-                onBack={() => setResidentView("home")}
-                onNavigate={(v) => setResidentView(v)}
-              />
-            );
-
-          case "settings":
-            return (
-              <ResidentSettings
-                onBack={() => setResidentView("home")}
-              />
-            );
-
-          case "serviceDetails":
-            return (
-              <ServiceDetails
-                onTrackOrder={handleTrackOrder}
-                onBack={() => setResidentView("home")}
-              />
-            );
-
-          case "home":
-          default:
-            return (
-              <ResidentHome
-                onNavigate={(v) => {
-                  // map view names to residentView keys
-                  setResidentView(v);
-                }}
-                onBack={() => setView("login")}
-              />
-            );
-        }
-
-      // ── Provider Module ───────────────────────────────────────
-      case "provider":
-        switch (providerView) {
-          case "profile":
-            return <ProviderProfile onBack={() => setProviderView("dashboard")} />;
-
-          case "settings":
-            return <ProviderSettings onBack={() => setProviderView("dashboard")} />;
-
-          case "reviews":
-            return <ProviderReviews onBack={() => setProviderView("dashboard")} />;
-
-          case "earnings":
-            return <ProviderEarnings onBack={() => setProviderView("dashboard")} />;
-
-          case "orders":                                                // NEW
-            return <ProviderOrders onBack={() => setProviderView("dashboard")} />;
-
-          case "dashboard":
-          default:
-            return (
-              <ProviderDashboard
-                onNavigate={setProviderView}
-                onBack={() => setView("login")}
-              />
-            );
-        }
-
-      // ── Admin ─────────────────────────────────────────────────
-      case "admin":
-        return <AdminDashboard onBack={() => setView("login")} />;
-
-      // ── Legacy / standalone ───────────────────────────────────
-      case "serviceDetails":
-        return (
-          <ServiceDetails
-            onTrackOrder={handleTrackOrder}
-            onBack={() => setView("landing")}
-          />
-        );
-
-      case "orderTracking":
-        return (
-          <OrderTracking
-            orderDetails={orderDetails}
-            onBack={() => setView("serviceDetails")}
-          />
-        );
-
-      default:
-        return (
-          <Landing
-            goLogin={() => setView("login")}
-            goService={() => { setResidentView("home"); setView("resident"); }}
-          />
-        );
-    }
-  };
-
-  return <div className="app-shell">{renderView()}</div>;
+        {/* Fallback */}
+        <Route path="*" element={<AuthRedirect />} />
+      </Routes>
+    </div>
+  );
 }
 
 export default App;

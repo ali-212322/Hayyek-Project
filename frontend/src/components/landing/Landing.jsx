@@ -1,10 +1,11 @@
 import "./Landing.css";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PhoneMock from "./PhoneMock";
 import C from "../../styles/colors";
-import CATEGORIES from "../../data/categories";
 
-function Landing({ goLogin, goService }) {
+function Landing() {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ function Landing({ goLogin, goService }) {
         <div className="nav-links">
           <button className="nav-link">How it Works</button>
           <button className="nav-link">Testimonials</button>
-          <button className="nav-link nav-cta" onClick={goLogin}>Sign In</button>
+          <button className="nav-link nav-cta" onClick={() => navigate("/login")}>Sign In</button>
         </div>
       </nav>
 
@@ -42,7 +43,7 @@ function Landing({ goLogin, goService }) {
             Hayyak connects you with trusted local service providers for all your daily needs. From groceries to home repairs, get it all done with a tap.
           </p>
           <div className="hero-actions">
-            <button className="btn-primary" onClick={goLogin}>Get Started Now →</button>
+            <button className="btn-primary" onClick={() => navigate("/login")}>Get Started Now →</button>
             <button className="btn-ghost">Learn More</button>
           </div>
           <div className="hero-stats">

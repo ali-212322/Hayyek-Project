@@ -1,24 +1,50 @@
 import React, { useState } from "react";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import C from "../../styles/colors";
 
-function LoginPage({ onLogin, onBack, onRegister }) {
+function LoginPage() {
+  const navigate = useNavigate();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
-  const { login, loading, error } = useAuth();
-  const [localError, setLocalError] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = async () => {
-    setLocalError("");
+  // Already logged in → redirect
+  if (isAuthenticated && user) {
+    const home = user.role === "provider" ? "/provider" : user.role === "admin" ? "/admin" : "/resident";
+    return <Navigate to={home} replace />;
+  }
+
+  const validate = () => {
+    if (!phone.trim()) return "Phone number is required.";
+    if (!/^\+?[\d\s\-]{7,}$/.test(phone.trim())) return "Enter a valid phone number (e.g. +966 50 123 4567).";
+    if (!password) return "Password is required.";
+    if (password.length < 6) return "Password must be at least 6 characters.";
+    return null;
+  };
+
+  const handleLogin = async (e) => {
+    e?.preventDefault();
+    setError("");
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
+
     try {
-      const response = await login({ phone, password });
-      const userType = response.user?.role || "resident";
-      onLogin(userType);
+      const response = await login({ phone: phone.trim(), password });
+      const role = response?.user?.role || "resident";
+      if (role === "provider") navigate("/provider", { replace: true });
+      else if (role === "admin") navigate("/admin", { replace: true });
+      else navigate("/resident", { replace: true });
     } catch (err) {
-      setLocalError(err.message || "Login failed. Please try again.");
+      setError(err.message || "Login failed. Please check your credentials.");
     }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleLogin(e);
   };
 
   return (
@@ -30,8 +56,13 @@ function LoginPage({ onLogin, onBack, onRegister }) {
           <h2>Connect with Your Neighborhood</h2>
           <p>Find trusted local services and grow your business within your community.</p>
           <div className="login-features">
-            {[{"icon":"🤝","text":"Trusted Providers"},{"icon":"⚡","text":"Instant Booking"},{"icon":"📍","text":"Local & Fast"},{"icon":"🌟","text":"Quality Guaranteed"}].map((f,i)=>(
-              <div key={i} className="login-feat" style={{ animationDelay:`${i*.1}s` }}>
+            {[
+              { icon: "🤝", text: "Trusted Providers" },
+              { icon: "⚡", text: "Instant Booking" },
+              { icon: "📍", text: "Local & Fast" },
+              { icon: "🌟", text: "Quality Guaranteed" },
+            ].map((f, i) => (
+              <div key={i} className="login-feat" style={{ animationDelay: `${i * 0.1}s` }}>
                 <div className="login-feat-icon">{f.icon}</div>{f.text}
               </div>
             ))}
@@ -41,7 +72,10 @@ function LoginPage({ onLogin, onBack, onRegister }) {
           <p>"Moved last month and felt completely lost. Hayyekk showed me everything I needed in my first hour."</p>
           <div className="login-t-author">
             <div className="login-t-ava">N</div>
-            <div><div className="login-t-name">Nour Al-Rashidi</div><div className="login-t-role">New resident, Al-Zaytoun</div></div>
+            <div>
+              <div className="login-t-name">Nour Al-Rashidi</div>
+              <div className="login-t-role">New resident, Al-Zaytoun</div>
+            </div>
             <div className="login-t-stars">★★★★★</div>
           </div>
         </div>
@@ -55,72 +89,76 @@ function LoginPage({ onLogin, onBack, onRegister }) {
             <h1>Sign in to Hayyekk</h1>
             <p>Access your neighborhood services</p>
           </div>
-          {(error || localError) && <div className="err-toast">⚠️ {error || localError}</div>}
-          <button className="social-btn">🌐 Continue with Google</button>
-          <button className="social-btn">📱 Continue with Phone</button>
-          <div className="divider"><span>or sign in with email</span></div>
 
-          <div className="form-grp">
-            <label className="label">Phone number</label>
-            <div className="input-wrap">
-              <span className="input-icon">📱</span>
-              <input
-                className="input input-padded"
-                type="tel"
-                placeholder="+966 50 123 4567"
-                value={phone}
-                onChange={e=>setPhone(e.target.value)}
-                disabled={loading}
-              />
+          {error && <div className="err-toast">⚠️ {error}</div>}
+
+          <div className="divider"><span>sign in with phone &amp; password</span></div>
+
+          <form onSubmit={handleLogin} noValidate>
+            <div className="form-grp">
+              <label className="label">Phone number</label>
+              <div className="input-wrap">
+                <span className="input-icon">📱</span>
+                <input
+                  className="input input-padded"
+                  type="tel"
+                  placeholder="+966 50 123 4567"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoComplete="tel"
+                />
+              </div>
             </div>
-          </div>
-          <div className="form-grp">
-            <label className="label">Password</label>
-            <div className="input-wrap">
-              <span className="input-icon">🔒</span>
-              <input 
-                className="input input-padded" 
-                type={showPw?"text":"password"} 
-                placeholder="Your password" 
-                value={password} 
-                onChange={e=>setPassword(e.target.value)}
-                disabled={loading}
-                style={{ paddingRight:"2.6rem" }} 
-              />
-              <button 
-                className="toggle-pw" 
-                onClick={()=>setShowPw(v=>!v)}
-                disabled={loading}
-              >
-                {showPw?"🙈":"👁"}
-              </button>
+
+            <div className="form-grp">
+              <label className="label">Password</label>
+              <div className="input-wrap">
+                <span className="input-icon">🔒</span>
+                <input
+                  className="input input-padded"
+                  type={showPw ? "text" : "password"}
+                  placeholder="Your password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  style={{ paddingRight: "2.6rem" }}
+                  autoComplete="current-password"
+                />
+                <button type="button" className="toggle-pw" onClick={() => setShowPw(v => !v)} disabled={isLoading}>
+                  {showPw ? "🙈" : "👁"}
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="form-row">
-            <div className="checkbox-wrap">
-              <input 
-                type="checkbox" 
-                id="rem" 
-                checked={remember} 
-                onChange={e=>setRemember(e.target.checked)}
-                disabled={loading}
-              />
-              <label htmlFor="rem">Remember me</label>
+
+            <div className="form-row">
+              <div className="checkbox-wrap">
+                <input type="checkbox" id="rem" checked={remember} onChange={e => setRemember(e.target.checked)} disabled={isLoading} />
+                <label htmlFor="rem">Remember me</label>
+              </div>
+              <button type="button" className="forgot-btn" disabled={isLoading}>Forgot password?</button>
             </div>
-            <button className="forgot-btn" disabled={loading}>Forgot password?</button>
-          </div>
-          <button 
-            className="btn-login" 
-            onClick={handleLogin} 
-            disabled={loading || !phone || !password}
-          >
-            {loading ? <>⏳ Signing in…</> : "Sign in to my neighborhood →"}
-          </button>
+
+            <button
+              type="submit"
+              className="btn-login"
+              disabled={isLoading || !phone || !password}
+            >
+              {isLoading ? "⏳ Signing in…" : "Sign in to my neighborhood →"}
+            </button>
+          </form>
+
           <div className="login-footer">
-            New to Hayyekk? <button onClick={onRegister} disabled={loading}>Join your neighborhood</button>
+            New to Hayyekk?{" "}
+            <Link to="/register" style={{ color: "inherit" }}>Join your neighborhood</Link>
           </div>
         </div>
-        <div className="login-right-foot">© 2026 Hayyekk · <a href="#" style={{ color:"inherit" }}>Privacy</a></div>
+        <div className="login-right-foot">
+          © 2026 Hayyekk ·{" "}
+          <Link to="/" style={{ color: "inherit" }}>Home</Link>
+        </div>
       </div>
     </div>
   );
