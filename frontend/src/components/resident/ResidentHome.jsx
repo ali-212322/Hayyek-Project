@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import api from "../../services/api";
 import useAuth from "../../hooks/useAuth";
 import "./ResidentHome.css";
 
 const STATUS_COLORS = { pending: "#f59e0b", in_progress: "#3b82f6", completed: "#10b981", cancelled: "#ef4444" };
+const MAP_CENTER = { lat: 24.7136, lng: 46.6753 };
 
 export default function ResidentHome() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-
   const [providers, setProviders] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProvider, setSelectedProvider] = useState(null);
-  const [orderForm, setOrderForm] = useState({ notes: "", address: "" });
+  const [orderForm, setOrderForm] = useState({ notes: "", address: "", latitude: null, longitude: null });
+  const [markerPos, setMarkerPos] = useState(null);
   const [toast, setToast] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +52,13 @@ export default function ResidentHome() {
     if (user?.address) setOrderForm(f => ({ ...f, address: user.address }));
   }, [user]);
 
+  const onMapClick = useCallback((e) => {
+    const lat = parseFloat(e.latLng.lat().toFixed(6));
+    const lng = parseFloat(e.latLng.lng().toFixed(6));
+    setMarkerPos({ lat, lng });
+    setOrderForm(prev => ({ ...prev, latitude: lat, longitude: lng, address: lat + ", " + lng }));
+  }, []);
+
   const categoryNames = ["All", ...categories.map(c => c.name)];
 
   const filtered = providers.filter(p => {
@@ -63,8 +76,8 @@ export default function ResidentHome() {
   };
 
   const handleOrder = async () => {
-    if (!orderForm.address.trim()) {
-      showToast("Please enter your address.", "error");
+    if (!markerPos) {
+      showToast("Please select your location on the map.", "error");
       return;
     }
     setOrderLoading(true);
@@ -73,10 +86,13 @@ export default function ResidentHome() {
         provider: selectedProvider.id,
         notes: orderForm.notes,
         address: orderForm.address,
+        latitude: orderForm.latitude,
+        longitude: orderForm.longitude,
       });
-      showToast(`Order placed with ${selectedProvider.business_name}! ✓`);
+      showToast("Order placed with " + selectedProvider.business_name + "! Check");
       setSelectedProvider(null);
-      setOrderForm({ notes: "", address: user?.address || "" });
+      setMarkerPos(null);
+      setOrderForm({ notes: "", address: "", latitude: null, longitude: null });
     } catch (err) {
       showToast(err.message || "Failed to place order.", "error");
     } finally {
@@ -93,11 +109,10 @@ export default function ResidentHome() {
 
   return (
     <div className="rh-root">
-      {/* Header */}
       <header className="rh-header">
         <div className="rh-header-inner">
           <div className="rh-brand">
-            <span className="rh-logo">حيّك</span>
+            <span className="rh-logo">حيك</span>
             <span className="rh-tagline">Neighborhood Services</span>
           </div>
           <nav className="rh-nav">
@@ -109,14 +124,13 @@ export default function ResidentHome() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="rh-hero">
         <h1>
-          {user?.full_name ? `Welcome, ${user.full_name.split(" ")[0]}` : "Find a Trusted"}
+          {user && user.full_name ? "Welcome, " + user.full_name.split(" ")[0] : "Find a Trusted"}
           <br /><span>Service Provider</span>
         </h1>
         <div className="rh-search-wrap">
-          <span className="rh-search-icon">🔍</span>
+          <span className="rh-search-icon">Search</span>
           <input
             className="rh-search"
             placeholder="Search services or providers..."
@@ -126,12 +140,11 @@ export default function ResidentHome() {
         </div>
       </section>
 
-      {/* Category Tabs */}
       <div className="rh-categories">
         {categoryNames.map(cat => (
           <button
             key={cat}
-            className={`rh-cat-btn ${activeCategory === cat ? "active" : ""}`}
+            className={"rh-cat-btn" + (activeCategory === cat ? " active" : "")}
             onClick={() => setActiveCategory(cat)}
           >
             {cat}
@@ -139,47 +152,47 @@ export default function ResidentHome() {
         ))}
       </div>
 
-      {/* Provider Cards */}
       <main className="rh-grid">
-        {loading && <div className="rh-empty">Loading providers…</div>}
+        {loading && <div className="rh-empty">Loading providers...</div>}
         {!loading && error && <div className="rh-empty" style={{ color: "#ef4444" }}>{error}</div>}
         {!loading && !error && filtered.length === 0 && (
           <div className="rh-empty">
-            {search ? `No providers found for "${search}"` : "No providers available right now."}
+            {search ? "No providers found for " + search : "No providers available right now."}
           </div>
         )}
         {filtered.map(p => (
-          <article key={p.id} className={`rh-card ${!p.is_available ? "rh-card-unavailable" : ""}`}>
-            <div className="rh-card-avatar">{p.logo ? <img src={p.logo} alt={p.business_name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} /> : getInitials(p.business_name)}</div>
+          <article key={p.id} className={"rh-card" + (!p.is_available ? " rh-card-unavailable" : "")}>
+            <div className="rh-card-avatar">
+              {p.logo ? <img src={p.logo} alt={p.business_name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} /> : getInitials(p.business_name)}
+            </div>
             <div className="rh-card-body">
               <div className="rh-card-top">
                 <h3>{p.business_name}</h3>
-                <span className={`rh-avail ${p.is_available ? "avail" : "unavail"}`}>
+                <span className={"rh-avail " + (p.is_available ? "avail" : "unavail")}>
                   {p.is_available ? "Available" : "Busy"}
                 </span>
               </div>
-              {p.full_name && <p className="rh-card-owner">👤 {p.full_name}</p>}
-              {p.neighborhood && <p className="rh-card-loc">📍 {p.neighborhood}</p>}
+              {p.full_name && <p className="rh-card-owner">{p.full_name}</p>}
+              {p.neighborhood && <p className="rh-card-loc">{p.neighborhood}</p>}
               {p.description && <p className="rh-card-desc">{p.description}</p>}
               <div className="rh-card-footer">
-                <span className="rh-rating">⭐ {p.avg_rating ? Number(p.avg_rating).toFixed(1) : "New"}</span>
+                <span className="rh-rating">{p.avg_rating ? Number(p.avg_rating).toFixed(1) : "New"}</span>
                 <span className="rh-price">{p.total_orders || 0} orders</span>
               </div>
             </div>
             {p.is_available && (
               <button className="rh-order-btn" onClick={() => setSelectedProvider(p)}>
-                Book Now →
+                Book Now
               </button>
             )}
           </article>
         ))}
       </main>
 
-      {/* Order Modal */}
       {selectedProvider && (
         <div className="rh-modal-backdrop" onClick={() => setSelectedProvider(null)}>
           <div className="rh-modal" onClick={e => e.stopPropagation()}>
-            <button className="rh-modal-close" onClick={() => setSelectedProvider(null)}>✕</button>
+            <button className="rh-modal-close" onClick={() => setSelectedProvider(null)}>X</button>
             <div className="rh-modal-header">
               <span className="rh-modal-avatar">{getInitials(selectedProvider.business_name)}</span>
               <div>
@@ -188,34 +201,53 @@ export default function ResidentHome() {
               </div>
             </div>
             <div className="rh-modal-body">
-              <label>Your Address *</label>
-              <input
-                placeholder="Enter your address"
-                value={orderForm.address}
-                onChange={e => setOrderForm({ ...orderForm, address: e.target.value })}
-              />
+              <label>Your Location (tap the map to select)</label>
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "220px", borderRadius: "10px", marginBottom: "8px" }}
+                  center={markerPos || MAP_CENTER}
+                  zoom={markerPos ? 15 : 11}
+                  onClick={onMapClick}
+                >
+                  {markerPos && <Marker position={markerPos} />}
+                  {selectedProvider.latitude && selectedProvider.longitude && (
+                    <Marker
+                      position={{ lat: parseFloat(selectedProvider.latitude), lng: parseFloat(selectedProvider.longitude) }}
+                      icon={{ url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" }}
+                    />
+                  )}
+                </GoogleMap>
+              ) : (
+                <div style={{ height: 220, background: "#f3f4f6", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", marginBottom: 8 }}>
+                  Loading map...
+                </div>
+              )}
+              {markerPos && (
+                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: 8 }}>
+                  Location selected
+                </p>
+              )}
               <label>Additional Notes</label>
               <textarea
-                placeholder="Describe what you need (e.g. AC gas recharge, deep kitchen clean)..."
+                placeholder="Describe what you need..."
                 value={orderForm.notes}
                 onChange={e => setOrderForm({ ...orderForm, notes: e.target.value })}
                 rows={3}
               />
               {selectedProvider.avg_rating && (
                 <div className="rh-modal-price">
-                  ⭐ {Number(selectedProvider.avg_rating).toFixed(1)} · {selectedProvider.total_orders || 0} orders completed
+                  {Number(selectedProvider.avg_rating).toFixed(1)} - {selectedProvider.total_orders || 0} orders completed
                 </div>
               )}
               <button className="rh-confirm-btn" onClick={handleOrder} disabled={orderLoading}>
-                {orderLoading ? "Placing order…" : "Confirm Order"}
+                {orderLoading ? "Placing order..." : "Confirm Order"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Toast */}
-      {toast && <div className={`rh-toast ${toast.type}`}>{toast.msg}</div>}
+      {toast && <div className={"rh-toast " + toast.type}>{toast.msg}</div>}
     </div>
   );
 }

@@ -1,17 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import api from "../../services/api";
 import useAuth from "../../hooks/useAuth";
+
+const MAP_CENTER = { lat: 24.7136, lng: 46.6753 };
 
 function ProviderSettings() {
   const navigate = useNavigate();
   const { user, updateProfile, logout, isLoading } = useAuth();
 
   const [form, setForm] = useState({ full_name: "", email: "" });
-  const [providerForm, setProviderForm] = useState({ business_name: "", neighborhood: "", description: "" });
+  const [providerForm, setProviderForm] = useState({
+    business_name: "",
+    neighborhood: "",
+    description: "",
+    latitude: null,
+    longitude: null,
+  });
+  const [markerPos, setMarkerPos] = useState(null);
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
   const [loadingData, setLoadingData] = useState(true);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
 
   useEffect(() => {
     if (user) setForm({ full_name: user.full_name || "", email: user.email || "" });
@@ -26,9 +40,14 @@ function ProviderSettings() {
           business_name: data.business_name || "",
           neighborhood: data.neighborhood || "",
           description: data.description || "",
+          latitude: data.latitude || null,
+          longitude: data.longitude || null,
         });
+        if (data.latitude && data.longitude) {
+          setMarkerPos({ lat: parseFloat(data.latitude), lng: parseFloat(data.longitude) });
+        }
       } catch {
-        // ok if not loaded
+        // ok
       } finally {
         setLoadingData(false);
       }
@@ -36,12 +55,19 @@ function ProviderSettings() {
     fetchProvider();
   }, []);
 
+  const onMapClick = useCallback((e) => {
+    const lat = parseFloat(e.latLng.lat().toFixed(6));
+    const lng = parseFloat(e.latLng.lng().toFixed(6));
+    setMarkerPos({ lat, lng });
+    setProviderForm(prev => ({ ...prev, latitude: lat, longitude: lng }));
+  }, []);
+
   const saveUserSettings = async () => {
     setError("");
     if (!form.full_name.trim()) { setError("Full name is required."); return; }
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { setError("Enter a valid email address."); return; }
     try {
-      await updateProfile({ full_name: form.full_name, email: form.email });
+      await updateProfile({ full_name: form.full_name, email: form.email || "" });
       setToast("Account settings saved ✓");
       setTimeout(() => setToast(""), 2500);
     } catch (err) {
@@ -53,7 +79,14 @@ function ProviderSettings() {
     setError("");
     if (!providerForm.business_name.trim()) { setError("Business name is required."); return; }
     try {
-      await api.updateProviderProfile(providerForm);
+      const payload = {
+        business_name: providerForm.business_name,
+        neighborhood: providerForm.neighborhood,
+        description: providerForm.description,
+      };
+      if (providerForm.latitude) payload.latitude = providerForm.latitude;
+      if (providerForm.longitude) payload.longitude = providerForm.longitude;
+      await api.updateProviderProfile(payload);
       setToast("Provider settings saved ✓");
       setTimeout(() => setToast(""), 2500);
     } catch (err) {
@@ -76,7 +109,7 @@ function ProviderSettings() {
       <div style={{ maxWidth: 600, margin: "32px auto", padding: "0 20px 60px", display: "flex", flexDirection: "column", gap: 20 }}>
         {error && <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "10px" }}>⚠️ {error}</div>}
 
-        {/* Account settings */}
+        {/* Account Settings */}
         <div style={{ background: "#fff", borderRadius: 16, padding: "24px", boxShadow: "0 4px 12px rgba(45,106,79,0.08)" }}>
           <h3 style={{ margin: "0 0 16px", color: "#1a1a1a" }}>Account Settings</h3>
           <div style={{ marginBottom: 14 }}>
@@ -102,10 +135,12 @@ function ProviderSettings() {
             <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>Phone</label>
             <input className="input" value={user?.phone || ""} disabled style={{ background: "#f9fafb", color: "#9ca3af" }} />
           </div>
-          <button className="btn-primary" onClick={saveUserSettings} disabled={isLoading}>{isLoading ? "Saving…" : "Save Account Settings"}</button>
+          <button className="btn-primary" onClick={saveUserSettings} disabled={isLoading}>
+            {isLoading ? "Saving…" : "Save Account Settings"}
+          </button>
         </div>
 
-        {/* Provider settings */}
+        {/* Business Settings */}
         {!loadingData && (
           <div style={{ background: "#fff", borderRadius: 16, padding: "24px", boxShadow: "0 4px 12px rgba(45,106,79,0.08)" }}>
             <h3 style={{ margin: "0 0 16px", color: "#1a1a1a" }}>Business Settings</h3>
@@ -138,11 +173,40 @@ function ProviderSettings() {
                 style={{ resize: "vertical" }}
               />
             </div>
-            <button className="btn-primary" onClick={saveProviderSettings} disabled={isLoading}>{isLoading ? "Saving…" : "Save Business Settings"}</button>
+
+            {/* Google Maps */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151", display: "block", marginBottom: 8 }}>
+                📍 Business Location <span style={{ fontWeight: 400, color: "#6b7280" }}>(اضغط على الخريطة لتحديد موقعك)</span>
+              </label>
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "300px", borderRadius: "12px" }}
+                  center={markerPos || MAP_CENTER}
+                  zoom={markerPos ? 15 : 11}
+                  onClick={onMapClick}
+                >
+                  {markerPos && <Marker position={markerPos} />}
+                </GoogleMap>
+              ) : (
+                <div style={{ height: 300, background: "#f3f4f6", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280" }}>
+                  Loading map…
+                </div>
+              )}
+              {markerPos && (
+                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 6 }}>
+                  ✓ الموقع محدد: {markerPos.lat.toFixed(5)}, {markerPos.lng.toFixed(5)}
+                </p>
+              )}
+            </div>
+
+            <button className="btn-primary" onClick={saveProviderSettings} disabled={isLoading}>
+              {isLoading ? "Saving…" : "Save Business Settings"}
+            </button>
           </div>
         )}
 
-        {/* Danger zone */}
+        {/* Account Actions */}
         <div style={{ background: "#fff", borderRadius: 16, padding: "24px", boxShadow: "0 4px 12px rgba(45,106,79,0.08)" }}>
           <h3 style={{ margin: "0 0 16px", color: "#1a1a1a" }}>Account Actions</h3>
           <button

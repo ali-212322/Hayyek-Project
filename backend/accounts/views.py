@@ -108,3 +108,10 @@ class MeView(APIView):
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
         return success_response(data=serializer.data)
+    
+    def patch(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return success_response(data=serializer.data, message="Profile updated.")
+        return error_response(message=str(serializer.errors))
