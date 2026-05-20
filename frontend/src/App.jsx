@@ -19,6 +19,8 @@ import ResidentHome from "./components/resident/ResidentHome";
 import ResidentProfile from "./components/resident/ResidentProfile";
 import ResidentOrders from "./components/resident/ResidentOrders";
 import ResidentSettings from "./components/resident/ResidentSettings";
+import PaymentPage from "./components/resident/PaymentPage";
+import PaymentCallback from "./components/resident/PaymentCallback";
 
 function ProtectedRoute({ children, allowedRole }) {
   const { isAuthenticated, user, isLoading } = useAuthContext();
@@ -70,6 +72,7 @@ function App() {
         <Route path="/resident" element={<ProtectedRoute allowedRole="resident"><ResidentHome /></ProtectedRoute>} />
         <Route path="/resident/profile" element={<ProtectedRoute allowedRole="resident"><ResidentProfile /></ProtectedRoute>} />
         <Route path="/resident/orders" element={<ProtectedRoute allowedRole="resident"><ResidentOrders /></ProtectedRoute>} />
+        <Route path="/resident/payment" element={<ProtectedRoute allowedRole="resident"><PaymentPage /></ProtectedRoute>} />
         <Route path="/resident/settings" element={<ProtectedRoute allowedRole="resident"><ResidentSettings /></ProtectedRoute>} />
 
         {/* Provider */}
@@ -85,6 +88,8 @@ function App() {
 
         {/* Fallback */}
         <Route path="*" element={<AuthRedirect />} />
+        <Route path="/resident/payment/callback" element={<ProtectedRoute allowedRole="resident"><PaymentCallback /></ProtectedRoute>} />
+        <Route path="/resident/payment/callback" element={<ProtectedRoute allowedRole="resident"><PaymentCallback /></ProtectedRoute>} />
       </Routes>
     </div>
   );

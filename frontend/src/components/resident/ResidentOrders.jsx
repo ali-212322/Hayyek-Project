@@ -130,14 +130,29 @@ export default function ResidentOrders() {
               </div>
 
               {order.status === "pending" && (
-                <button
-                  className="ro-browse-btn"
-                  style={{ background: "#ef4444", color: "#fff", marginTop: "8px" }}
-                  onClick={() => handleCancel(order.id)}
-                  disabled={cancellingId === order.id}
-                >
-                  {cancellingId === order.id ? "Cancelling…" : "Cancel Order"}
-                </button>
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button
+                    className="ro-browse-btn"
+                    style={{ background: "#2D6A4F", color: "#fff", flex: 1 }}
+                    onClick={() => navigate("/resident/payment", {
+                      state: {
+                        orderId: order.order_number || order.id,
+                        amount: order.price || 0,
+                        description: "Hayyak - " + (order.provider_name || "Service")
+                      }
+                    })}
+                  >
+                    💳 Pay Now
+                  </button>
+                  <button
+                    className="ro-browse-btn"
+                    style={{ background: "#ef4444", color: "#fff", flex: 1 }}
+                    onClick={() => handleCancel(order.id)}
+                    disabled={cancellingId === order.id}
+                  >
+                    {cancellingId === order.id ? "Cancelling…" : "Cancel Order"}
+                  </button>
+                </div>
               )}
 
               <div className="ro-card-id">Order #{order.order_number || order.id}</div>
