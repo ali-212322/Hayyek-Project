@@ -1,3 +1,4 @@
 backend/.claude/
 frontend/node_modules/
 frontend/package-lock.json
+backend/ca.pem
