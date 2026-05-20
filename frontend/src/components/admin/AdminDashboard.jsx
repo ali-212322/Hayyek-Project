@@ -48,7 +48,7 @@ function AdminDashboard() {
   const approveProvider = async (id) => {
     setUpdatingId(id);
     try {
-      await api.approveProvider(id);
+      await api.approveProvider(id, "approved");
       setProviders(prev => prev.map(p => p.id === id ? { ...p, status: "approved" } : p));
     } catch (err) {
       alert(err.message || "Failed to approve provider.");

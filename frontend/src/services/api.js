@@ -51,7 +51,6 @@ class APIService {
         throw new Error(error.error?.message || error.detail || error.message || "API Error");
       }
 
-      // Handle 204 No Content
       if (response.status === 204) return {};
       return await response.json();
     } catch (error) {
@@ -147,8 +146,11 @@ class APIService {
     });
   }
 
-  async approveProvider(id) {
-    return this.request(`/providers/${id}/approve/`, { method: "PUT" });
+  async approveProvider(id, status = "approved") {
+    return this.request(`/providers/${id}/approve/`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
   }
 
   // ── Services ──────────────────────────────────────────────────

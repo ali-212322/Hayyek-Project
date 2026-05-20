@@ -33,6 +33,19 @@ class RegisterView(APIView):
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
         user = serializer.save()
+
+        # إنشاء ProviderProfile تلقائياً إذا كان الدور provider
+        if user.role == 'provider':
+            from providers.models import ProviderProfile
+            ProviderProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'business_name': user.full_name or '',
+                    'status': 'pending',
+                    'is_available': False,
+                }
+            )
+
         otp = OTPVerification.create_for_user(user=user, purpose="register")
         logger.info("OTP for %s: %s", user.phone, otp.otp_code)
         return created_response(
@@ -108,7 +121,7 @@ class MeView(APIView):
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
         return success_response(data=serializer.data)
-    
+
     def patch(self, request):
         serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
         if serializer.is_valid():
