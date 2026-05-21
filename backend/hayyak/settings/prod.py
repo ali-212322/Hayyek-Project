@@ -31,3 +31,10 @@ DATABASES = {
         },
     }
 }
+CORS_ALLOWED_ORIGINS = [
+    "https://ali-212322.github.io",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://ali-212322.github.io",
+]
