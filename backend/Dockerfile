@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "echo $CA_CERT_BASE64 | base64 -d > /etc/ssl/ca.pem && python manage.py migrate --settings=hayyak.settings.prod && gunicorn hayyak.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "echo $CA_CERT_BASE64 | base64 -d > /etc/ssl/ca.pem && python manage.py migrate --settings=hayyak.settings.prod && python manage.py collectstatic --noinput --settings=hayyak.settings.prod && gunicorn hayyak.wsgi:application --bind 0.0.0.0:8000"]
