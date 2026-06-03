@@ -20,25 +20,45 @@ function ProviderDashboard() {
   const [provider, setProvider] = useState(null);
   const [orders, setOrders] = useState([]);
   const [services, setServices] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [updatingOrder, setUpdatingOrder] = useState(null);
+  const [creatingService, setCreatingService] = useState(false);
+
+  const [serviceForm, setServiceForm] = useState({
+    category: "",
+    name: "",
+    description: "",
+    price: "",
+    duration_minutes: 60,
+  });
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [providerRes, ordersRes, servicesRes, reviewsRes] = await Promise.all([
-        api.getMyProviderProfile().catch(() => null),
+
+      const providerRes = await api.getMyProviderProfile().catch(() => null);
+      const providerData = providerRes?.data || providerRes;
+
+      if (providerData) {
+        setProvider(providerData);
+      }
+
+      const [ordersRes, servicesRes, categoriesRes, reviewsRes] = await Promise.all([
         api.getOrders(),
-        api.getServices().catch(() => ({ data: [] })),
+        providerData?.id
+          ? api.getMyServices(providerData.id).catch(() => ({ data: [] }))
+          : Promise.resolve({ data: [] }),
+        api.getCategories().catch(() => ({ data: [] })),
         api.getReviews().catch(() => ({ data: [] })),
       ]);
 
-      if (providerRes) setProvider(providerRes.data || providerRes);
       setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : (ordersRes.data?.results || []));
       setServices(Array.isArray(servicesRes.data) ? servicesRes.data : (servicesRes.data?.results || []));
+      setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : (categoriesRes.data?.results || []));
       setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : (reviewsRes.data?.results || []));
     } catch (err) {
       setError("Failed to load dashboard data.");
@@ -60,6 +80,45 @@ function ProviderDashboard() {
       alert(err.message || "Failed to update order.");
     } finally {
       setUpdatingOrder(null);
+    }
+  };
+
+  const handleCreateService = async (e) => {
+    e.preventDefault();
+
+    if (!serviceForm.name || !serviceForm.price) {
+      alert("Please enter service name and price.");
+      return;
+    }
+
+    setCreatingService(true);
+
+    try {
+      const payload = {
+        ...serviceForm,
+        category: serviceForm.category || null,
+        price: Number(serviceForm.price),
+        duration_minutes: Number(serviceForm.duration_minutes || 60),
+      };
+
+      const res = await api.createService(payload);
+      const newService = res?.data || res;
+
+      setServices(prev => [newService, ...prev]);
+
+      setServiceForm({
+        category: "",
+        name: "",
+        description: "",
+        price: "",
+        duration_minutes: 60,
+      });
+
+      alert("Service added successfully.");
+    } catch (err) {
+      alert(err.message || "Failed to create service.");
+    } finally {
+      setCreatingService(false);
     }
   };
 
@@ -100,7 +159,6 @@ function ProviderDashboard() {
 
   return (
     <div className="pd-shell">
-      {/* Sidebar */}
       <aside className="sidebar pd-sidebar">
         <div className="sidebar-logo">حيّك<span>.</span></div>
 
@@ -144,7 +202,6 @@ function ProviderDashboard() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="pd-main">
         <div className="pd-topbar">
           <div className="pd-topbar-title">Provider Dashboard</div>
@@ -169,7 +226,6 @@ function ProviderDashboard() {
 
         {!loading && !error && (
           <div className="pd-content">
-            {/* KPIs */}
             <div className="kpi-grid">
               {[
                 { icon: "📦", label: "Total Orders", val: orders.length, change: `${pendingCount} pending` },
@@ -188,7 +244,6 @@ function ProviderDashboard() {
 
             <div className="pd-grid">
               <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                {/* Incoming Orders */}
                 <div className="card">
                   <div className="card-header">
                     <div>
@@ -243,7 +298,67 @@ function ProviderDashboard() {
                   )}
                 </div>
 
-                {/* My Services */}
+                <div className="card">
+                  <div className="card-header">
+                    <div>
+                      <div className="card-title">Add New Service</div>
+                      <div style={{ fontSize: ".75rem", color: C.muted, marginTop: "2px" }}>
+                        Add services that belong only to your provider account.
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleCreateService} style={{ padding: "1.2rem 1.5rem", display: "grid", gap: "12px" }}>
+                    <input
+                      type="text"
+                      placeholder="Service name"
+                      value={serviceForm.name}
+                      onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
+                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
+                    />
+
+                    <textarea
+                      placeholder="Description"
+                      value={serviceForm.description}
+                      onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd", minHeight: "80px" }}
+                    />
+
+                    <select
+                      value={serviceForm.category}
+                      onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value })}
+                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
+                    >
+                      <option value="">Select category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name_en || cat.name_ar}
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={serviceForm.price}
+                      onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
+                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
+                    />
+
+                    <input
+                      type="number"
+                      placeholder="Duration in minutes"
+                      value={serviceForm.duration_minutes}
+                      onChange={(e) => setServiceForm({ ...serviceForm, duration_minutes: e.target.value })}
+                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
+                    />
+
+                    <button className="btn-primary" type="submit" disabled={creatingService}>
+                      {creatingService ? "Adding..." : "Add Service"}
+                    </button>
+                  </form>
+                </div>
+
                 <div className="card">
                   <div className="card-header">
                     <div><div className="card-title">My Services</div></div>
@@ -253,11 +368,12 @@ function ProviderDashboard() {
                   ) : (
                     <div className="table-wrap">
                       <table className="data-table">
-                        <thead><tr><th>Service</th><th>Price</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Status</th></tr></thead>
                         <tbody>
                           {services.map(s => (
                             <tr key={s.id}>
                               <td>{s.name}</td>
+                              <td>{s.category_name || "—"}</td>
                               <td>SAR {s.price}</td>
                               <td><span className={`badge ${s.is_active ? "badge-approved" : "badge-suspend"}`}>{s.is_active ? "Active" : "Inactive"}</span></td>
                             </tr>
@@ -269,9 +385,7 @@ function ProviderDashboard() {
                 </div>
               </div>
 
-              {/* Right column */}
               <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                {/* Reviews */}
                 <div className="card">
                   <div className="card-header">
                     <div><div className="card-title">Recent Reviews</div></div>
@@ -298,7 +412,6 @@ function ProviderDashboard() {
                   </div>
                 </div>
 
-                {/* Quick links */}
                 <div className="card" style={{ padding: "1.2rem 1.5rem" }}>
                   <div className="card-title" style={{ marginBottom: "12px" }}>Quick Links</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

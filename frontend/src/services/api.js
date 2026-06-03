@@ -38,6 +38,7 @@ class APIService {
         } catch {
           throw new Error(`Server error (${response.status})`);
         }
+
         const details = error.error?.details;
         if (details && typeof details === "object") {
           const fieldErrors = Object.entries(details)
@@ -46,9 +47,16 @@ class APIService {
               return `${field}: ${msg}`;
             })
             .join(" | ");
+
           throw new Error(fieldErrors || error.error?.message || "API Error");
         }
-        throw new Error(error.error?.message || error.detail || error.message || "API Error");
+
+        throw new Error(
+          error.error?.message ||
+            error.detail ||
+            error.message ||
+            "API Error"
+        );
       }
 
       if (response.status === 204) return {};
@@ -164,8 +172,12 @@ class APIService {
     return this.request(`/services/?${queryString}`);
   }
 
+  async getMyServices(providerId) {
+    return this.getServices({ provider: providerId });
+  }
+
   async createService(serviceData) {
-    return this.request("/services/", {
+    return this.request("/services/create/", {
       method: "POST",
       body: JSON.stringify(serviceData),
     });
@@ -177,13 +189,15 @@ class APIService {
 
   async updateService(id, serviceData) {
     return this.request(`/services/${id}/`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(serviceData),
     });
   }
 
   async deleteService(id) {
-    return this.request(`/services/${id}/`, { method: "DELETE" });
+    return this.request(`/services/${id}/`, {
+      method: "DELETE",
+    });
   }
 
   // ── Orders ────────────────────────────────────────────────────
@@ -212,7 +226,9 @@ class APIService {
   }
 
   async cancelOrder(id) {
-    return this.request(`/orders/${id}/cancel/`, { method: "PUT" });
+    return this.request(`/orders/${id}/cancel/`, {
+      method: "PUT",
+    });
   }
 
   // ── Reviews ───────────────────────────────────────────────────
@@ -260,7 +276,9 @@ class APIService {
   }
 
   async markAllNotificationsAsRead() {
-    return this.request("/notifications/mark-all-read/", { method: "POST" });
+    return this.request("/notifications/mark-all-read/", {
+      method: "POST",
+    });
   }
 
   // ── Admin ─────────────────────────────────────────────────────
