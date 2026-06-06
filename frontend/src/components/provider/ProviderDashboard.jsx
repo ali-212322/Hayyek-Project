@@ -32,6 +32,7 @@ function ProviderDashboard() {
     category: "",
     name: "",
     description: "",
+    image_url: "",
     price: "",
     duration_minutes: 60,
   });
@@ -43,9 +44,7 @@ function ProviderDashboard() {
       const providerRes = await api.getMyProviderProfile().catch(() => null);
       const providerData = providerRes?.data || providerRes;
 
-      if (providerData) {
-        setProvider(providerData);
-      }
+      if (providerData) setProvider(providerData);
 
       const [ordersRes, servicesRes, categoriesRes, reviewsRes] = await Promise.all([
         api.getOrders(),
@@ -60,7 +59,7 @@ function ProviderDashboard() {
       setServices(Array.isArray(servicesRes.data) ? servicesRes.data : (servicesRes.data?.results || []));
       setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : (categoriesRes.data?.results || []));
       setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : (reviewsRes.data?.results || []));
-    } catch (err) {
+    } catch {
       setError("Failed to load dashboard data.");
     } finally {
       setLoading(false);
@@ -97,6 +96,7 @@ function ProviderDashboard() {
       const payload = {
         ...serviceForm,
         category: serviceForm.category || null,
+        image_url: serviceForm.image_url || null,
         price: Number(serviceForm.price),
         duration_minutes: Number(serviceForm.duration_minutes || 60),
       };
@@ -110,6 +110,7 @@ function ProviderDashboard() {
         category: "",
         name: "",
         description: "",
+        image_url: "",
         price: "",
         duration_minutes: 60,
       });
@@ -173,12 +174,7 @@ function ProviderDashboard() {
 
         <nav className="pd-nav" style={{ padding: "1.1rem 0", flex: 1 }}>
           {NAV.map(n => (
-            <div
-              key={n.label}
-              className={`sidebar-item ${activeNav === n.label ? "active" : ""}`}
-              onClick={() => handleNav(n)}
-              style={{ cursor: "pointer" }}
-            >
+            <div key={n.label} className={`sidebar-item ${activeNav === n.label ? "active" : ""}`} onClick={() => handleNav(n)} style={{ cursor: "pointer" }}>
               <span className="sidebar-icon">{n.icon}</span>
               {n.label}
               {n.badge ? <span className="sidebar-badge">{n.badge}</span> : null}
@@ -188,10 +184,7 @@ function ProviderDashboard() {
 
         <div className="sidebar-footer">
           <div className="avail-row">
-            <div
-              className={`toggle-switch ${provider?.is_available ? "on" : "off"}`}
-              onClick={toggleAvailability}
-            />
+            <div className={`toggle-switch ${provider?.is_available ? "on" : "off"}`} onClick={toggleAvailability} />
             <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.65)" }}>
               {provider?.is_available ? "I'm Available" : "Set as Busy"}
             </span>
@@ -205,20 +198,6 @@ function ProviderDashboard() {
       <main className="pd-main">
         <div className="pd-topbar">
           <div className="pd-topbar-title">Provider Dashboard</div>
-          <div className="pd-topbar-r">
-            <div className="notif-btn" onClick={() => navigate("/provider/orders")} style={{ cursor: "pointer", position: "relative" }} title="View pending orders">
-              🔔{pendingCount > 0 && <span className="notif-dot" />}
-            </div>
-            <div
-              style={{ fontSize: ".82rem", color: C.muted, fontWeight: 600, cursor: "pointer", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${C.gf || "#d8f3dc"}` }}
-              onClick={() => navigate("/provider/profile")}
-            >
-              👤 Profile
-            </div>
-            <div style={{ fontSize: ".82rem", color: C.muted, fontWeight: 600 }}>
-              {new Date().toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
-            </div>
-          </div>
         </div>
 
         {loading && <div style={{ padding: "2rem", textAlign: "center", color: C.muted }}>Loading dashboard…</div>}
@@ -231,73 +210,19 @@ function ProviderDashboard() {
                 { icon: "📦", label: "Total Orders", val: orders.length, change: `${pendingCount} pending` },
                 { icon: "✅", label: "Completed", val: orders.filter(o => o.status === "completed").length, change: "orders done" },
                 { icon: "⭐", label: "Avg. Rating", val: provider?.avg_rating ? Number(provider.avg_rating).toFixed(1) : "—", change: `${reviews.length} reviews` },
-                { icon: "📋", label: "Pending", val: pendingCount, change: "need action", cls: pendingCount > 0 ? "up" : "" },
+                { icon: "📋", label: "Pending", val: pendingCount, change: "need action" },
               ].map(k => (
                 <div key={k.label} className="kpi-card">
                   <div className="kpi-icon">{k.icon}</div>
                   <div className="kpi-label">{k.label}</div>
                   <div className="kpi-val">{k.val}</div>
-                  <div className={`kpi-change ${k.cls || ""}`}>{k.change}</div>
+                  <div className="kpi-change">{k.change}</div>
                 </div>
               ))}
             </div>
 
             <div className="pd-grid">
               <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                <div className="card">
-                  <div className="card-header">
-                    <div>
-                      <div className="card-title">Recent Orders</div>
-                      {pendingCount > 0 && <div style={{ fontSize: ".75rem", color: "#f59e0b", marginTop: "2px" }}>{pendingCount} pending action{pendingCount > 1 ? "s" : ""}</div>}
-                    </div>
-                    <button className="card-action" onClick={() => navigate("/provider/orders")}>View all →</button>
-                  </div>
-                  {recentOrders.length === 0 ? (
-                    <div style={{ padding: "1.5rem", textAlign: "center", color: C.muted }}>No orders yet.</div>
-                  ) : (
-                    <div className="table-wrap">
-                      <table className="data-table">
-                        <thead>
-                          <tr><th>Order #</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Action</th></tr>
-                        </thead>
-                        <tbody>
-                          {recentOrders.map(o => {
-                            const meta = STATUS_META[o.status] || { label: o.status, cls: "badge-pending" };
-                            return (
-                              <tr key={o.id}>
-                                <td><span className="order-id">#{o.order_number || o.id}</span></td>
-                                <td>
-                                  <div className="cust-row">
-                                    <div className="mini-ava">{(o.resident_name || "?")[0]}</div>
-                                    {o.resident_name || "Customer"}
-                                  </div>
-                                </td>
-                                <td>{o.service_name || o.notes || "—"}</td>
-                                <td style={{ fontWeight: 700 }}>SAR {o.total_price || 0}</td>
-                                <td><span className={`badge ${meta.cls}`}>{meta.label}</span></td>
-                                <td>
-                                  {o.status === "pending" && (
-                                    <div className="action-btns">
-                                      <button className="btn-accept" onClick={() => updateOrder(o.id, "accepted")} disabled={updatingOrder === o.id}>Accept</button>
-                                      <button className="btn-reject" onClick={() => updateOrder(o.id, "rejected")} disabled={updatingOrder === o.id}>Reject</button>
-                                    </div>
-                                  )}
-                                  {o.status === "accepted" && (
-                                    <button className="btn-accept" onClick={() => updateOrder(o.id, "in_progress")} disabled={updatingOrder === o.id}>Start</button>
-                                  )}
-                                  {o.status === "in_progress" && (
-                                    <button className="btn-primary" onClick={() => updateOrder(o.id, "completed")} disabled={updatingOrder === o.id}>Complete</button>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-
                 <div className="card">
                   <div className="card-header">
                     <div>
@@ -309,49 +234,22 @@ function ProviderDashboard() {
                   </div>
 
                   <form onSubmit={handleCreateService} style={{ padding: "1.2rem 1.5rem", display: "grid", gap: "12px" }}>
-                    <input
-                      type="text"
-                      placeholder="Service name"
-                      value={serviceForm.name}
-                      onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
-                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
-                    />
+                    <input type="text" placeholder="Service name" value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }} />
 
-                    <textarea
-                      placeholder="Description"
-                      value={serviceForm.description}
-                      onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd", minHeight: "80px" }}
-                    />
+                    <textarea placeholder="Description" value={serviceForm.description} onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd", minHeight: "80px" }} />
 
-                    <select
-                      value={serviceForm.category}
-                      onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value })}
-                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
-                    >
+                    <input type="url" placeholder="Image URL" value={serviceForm.image_url} onChange={(e) => setServiceForm({ ...serviceForm, image_url: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }} />
+
+                    <select value={serviceForm.category} onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}>
                       <option value="">Select category</option>
                       {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name_en || cat.name_ar}
-                        </option>
+                        <option key={cat.id} value={cat.id}>{cat.name_en || cat.name_ar}</option>
                       ))}
                     </select>
 
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      value={serviceForm.price}
-                      onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
-                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
-                    />
+                    <input type="number" placeholder="Price" value={serviceForm.price} onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }} />
 
-                    <input
-                      type="number"
-                      placeholder="Duration in minutes"
-                      value={serviceForm.duration_minutes}
-                      onChange={(e) => setServiceForm({ ...serviceForm, duration_minutes: e.target.value })}
-                      style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
-                    />
+                    <input type="number" placeholder="Duration in minutes" value={serviceForm.duration_minutes} onChange={(e) => setServiceForm({ ...serviceForm, duration_minutes: e.target.value })} style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }} />
 
                     <button className="btn-primary" type="submit" disabled={creatingService}>
                       {creatingService ? "Adding..." : "Add Service"}
@@ -363,19 +261,37 @@ function ProviderDashboard() {
                   <div className="card-header">
                     <div><div className="card-title">My Services</div></div>
                   </div>
+
                   {services.length === 0 ? (
                     <div style={{ padding: "1.5rem", textAlign: "center", color: C.muted }}>No services added yet.</div>
                   ) : (
                     <div className="table-wrap">
                       <table className="data-table">
-                        <thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Status</th></tr></thead>
+                        <thead>
+                          <tr>
+                            <th>Image</th>
+                            <th>Service</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
                         <tbody>
                           {services.map(s => (
                             <tr key={s.id}>
+                              <td>
+                                {s.image_url ? (
+                                  <img src={s.image_url} alt={s.name} style={{ width: "54px", height: "40px", objectFit: "cover", borderRadius: "8px" }} />
+                                ) : "—"}
+                              </td>
                               <td>{s.name}</td>
                               <td>{s.category_name || "—"}</td>
                               <td>SAR {s.price}</td>
-                              <td><span className={`badge ${s.is_active ? "badge-approved" : "badge-suspend"}`}>{s.is_active ? "Active" : "Inactive"}</span></td>
+                              <td>
+                                <span className={`badge ${s.is_active ? "badge-approved" : "badge-suspend"}`}>
+                                  {s.is_active ? "Active" : "Inactive"}
+                                </span>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -388,43 +304,48 @@ function ProviderDashboard() {
               <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                 <div className="card">
                   <div className="card-header">
-                    <div><div className="card-title">Recent Reviews</div></div>
-                    <button className="card-action" onClick={() => navigate("/provider/reviews")}>View all →</button>
+                    <div><div className="card-title">Recent Orders</div></div>
+                    <button className="card-action" onClick={() => navigate("/provider/orders")}>View all →</button>
                   </div>
-                  <div className="reviews-list" style={{ padding: "1.2rem 1.5rem" }}>
-                    {recentReviews.length === 0 ? (
-                      <div style={{ color: C.muted, textAlign: "center" }}>No reviews yet.</div>
-                    ) : (
-                      recentReviews.map(r => (
-                        <div className="review-card" key={r.id}>
-                          <div className="review-head">
-                            <div className="review-ava" style={{ background: C.gl, color: C.gd }}>{(r.resident_name || "?")[0]}</div>
-                            <div>
-                              <div className="review-name">{r.resident_name || "Customer"}</div>
-                              <div className="review-date">{new Date(r.created_at).toLocaleDateString()}</div>
-                            </div>
-                          </div>
-                          <div className="review-stars">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
-                          <p className="review-text">"{r.comment}"</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
+
+                  {recentOrders.length === 0 ? (
+                    <div style={{ padding: "1.5rem", textAlign: "center", color: C.muted }}>No orders yet.</div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="data-table">
+                        <thead>
+                          <tr><th>Order</th><th>Service</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                          {recentOrders.map(o => {
+                            const meta = STATUS_META[o.status] || { label: o.status, cls: "badge-pending" };
+                            return (
+                              <tr key={o.id}>
+                                <td>#{o.order_number || o.id}</td>
+                                <td>{o.service_name || "—"}</td>
+                                <td><span className={`badge ${meta.cls}`}>{meta.label}</span></td>
+                                <td>
+                                  {o.status === "pending" && (
+                                    <div className="action-btns">
+                                      <button className="btn-accept" onClick={() => updateOrder(o.id, "accepted")} disabled={updatingOrder === o.id}>Accept</button>
+                                      <button className="btn-reject" onClick={() => updateOrder(o.id, "rejected")} disabled={updatingOrder === o.id}>Reject</button>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 <div className="card" style={{ padding: "1.2rem 1.5rem" }}>
                   <div className="card-title" style={{ marginBottom: "12px" }}>Quick Links</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {[
-                      { icon: "👤", label: "My Profile", path: "/provider/profile" },
-                      { icon: "💰", label: "Earnings", path: "/provider/earnings" },
-                      { icon: "⚙️", label: "Settings", path: "/provider/settings" },
-                    ].map(({ icon, label, path }) => (
-                      <button key={path} className="btn-ghost" style={{ textAlign: "left", padding: "10px 14px", borderRadius: "10px" }} onClick={() => navigate(path)}>
-                        {icon} {label} →
-                      </button>
-                    ))}
-                  </div>
+                  <button className="btn-ghost" onClick={() => navigate("/provider/profile")}>👤 My Profile →</button>
+                  <button className="btn-ghost" onClick={() => navigate("/provider/earnings")}>💰 Earnings →</button>
+                  <button className="btn-ghost" onClick={() => navigate("/provider/settings")}>⚙️ Settings →</button>
                 </div>
               </div>
             </div>

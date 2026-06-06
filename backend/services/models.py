@@ -32,6 +32,7 @@ class Service(models.Model):
     )
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_minutes = models.IntegerField(default=60)
     is_active = models.BooleanField(default=True)

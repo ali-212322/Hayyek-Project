@@ -15,8 +15,18 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            "id", "provider", "provider_name", "category", "category_name",
-            "name", "description", "price", "duration_minutes", "is_active", "created_at",
+            "id",
+            "provider",
+            "provider_name",
+            "category",
+            "category_name",
+            "name",
+            "description",
+            "image_url",
+            "price",
+            "duration_minutes",
+            "is_active",
+            "created_at",
         ]
         read_only_fields = ["id", "provider", "created_at"]
 
@@ -24,7 +34,14 @@ class ServiceSerializer(serializers.ModelSerializer):
 class ServiceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ["category", "name", "description", "price", "duration_minutes"]
+        fields = [
+            "category",
+            "name",
+            "description",
+            "image_url",
+            "price",
+            "duration_minutes",
+        ]
 
     def create(self, validated_data):
         provider = self.context["request"].user.provider_profile
