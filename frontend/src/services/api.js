@@ -255,7 +255,7 @@ class APIService {
   }
 
   async verifyPayment(paymentData) {
-    return this.request("/payments/verify/", {
+    return this.request("/payments/verify-moyasar/", {
       method: "POST",
       body: JSON.stringify(paymentData),
     });
