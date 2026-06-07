@@ -27,7 +27,16 @@ function ProtectedRoute({ children, allowedRole }) {
 
   if (isLoading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "sans-serif", color: "#2D6A4F" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          fontFamily: "sans-serif",
+          color: "#2D6A4F",
+        }}
+      >
         Loading…
       </div>
     );
@@ -38,7 +47,13 @@ function ProtectedRoute({ children, allowedRole }) {
   }
 
   if (allowedRole && user?.role !== allowedRole) {
-    const home = user?.role === "provider" ? "/provider" : user?.role === "admin" ? "/admin" : "/resident";
+    const home =
+      user?.role === "provider"
+        ? "/provider"
+        : user?.role === "admin"
+        ? "/admin"
+        : "/resident";
+
     return <Navigate to={home} replace />;
   }
 
@@ -56,7 +71,7 @@ function AuthRedirect() {
     return <Navigate to="/resident" replace />;
   }
 
-  return null;
+  return <Navigate to="/" replace />;
 }
 
 function App() {
@@ -69,27 +84,110 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Resident */}
-        <Route path="/resident" element={<ProtectedRoute allowedRole="resident"><ResidentHome /></ProtectedRoute>} />
-        <Route path="/resident/profile" element={<ProtectedRoute allowedRole="resident"><ResidentProfile /></ProtectedRoute>} />
-        <Route path="/resident/orders" element={<ProtectedRoute allowedRole="resident"><ResidentOrders /></ProtectedRoute>} />
-        <Route path="/resident/payment" element={<ProtectedRoute allowedRole="resident"><PaymentPage /></ProtectedRoute>} />
-        <Route path="/resident/settings" element={<ProtectedRoute allowedRole="resident"><ResidentSettings /></ProtectedRoute>} />
+        <Route
+          path="/resident"
+          element={
+            <ProtectedRoute allowedRole="resident">
+              <ResidentHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resident/profile"
+          element={
+            <ProtectedRoute allowedRole="resident">
+              <ResidentProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resident/orders"
+          element={
+            <ProtectedRoute allowedRole="resident">
+              <ResidentOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resident/payment"
+          element={
+            <ProtectedRoute allowedRole="resident">
+              <PaymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/resident/payment/callback" element={<PaymentCallback />} />
+        <Route
+          path="/resident/settings"
+          element={
+            <ProtectedRoute allowedRole="resident">
+              <ResidentSettings />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Provider */}
-        <Route path="/provider" element={<ProtectedRoute allowedRole="provider"><ProviderDashboard /></ProtectedRoute>} />
-        <Route path="/provider/orders" element={<ProtectedRoute allowedRole="provider"><ProviderOrders /></ProtectedRoute>} />
-        <Route path="/provider/profile" element={<ProtectedRoute allowedRole="provider"><ProviderProfile /></ProtectedRoute>} />
-        <Route path="/provider/earnings" element={<ProtectedRoute allowedRole="provider"><ProviderEarnings /></ProtectedRoute>} />
-        <Route path="/provider/reviews" element={<ProtectedRoute allowedRole="provider"><ProviderReviews /></ProtectedRoute>} />
-        <Route path="/provider/settings" element={<ProtectedRoute allowedRole="provider"><ProviderSettings /></ProtectedRoute>} />
+        <Route
+          path="/provider"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/provider/orders"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/provider/profile"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/provider/earnings"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderEarnings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/provider/reviews"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderReviews />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/provider/settings"
+          element={
+            <ProtectedRoute allowedRole="provider">
+              <ProviderSettings />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin */}
-        <Route path="/admin" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<AuthRedirect />} />
-        <Route path="/resident/payment/callback" element={<ProtectedRoute allowedRole="resident"><PaymentCallback /></ProtectedRoute>} />
-        <Route path="/resident/payment/callback" element={<ProtectedRoute allowedRole="resident"><PaymentCallback /></ProtectedRoute>} />
       </Routes>
     </div>
   );

@@ -136,8 +136,8 @@ export default function ResidentOrders() {
                     style={{ background: "#2D6A4F", color: "#fff", flex: 1 }}
                     onClick={() => navigate("/resident/payment", {
                       state: {
-                        orderId: order.order_number || order.id,
-                        amount: order.price || 0,
+                        orderId: order.id,
+                        amount: Number(order.total_price || 0),
                         description: "Hayyak - " + (order.provider_name || "Service")
                       }
                     })}
