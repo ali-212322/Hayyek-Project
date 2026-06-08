@@ -106,6 +106,28 @@ export default function ResidentHome() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const getOrderErrorMessage = (err) => {
+    const data = err?.response?.data;
+
+    if (data?.code === "PROVIDER_TOO_FAR") {
+      return data.message || "This provider is outside your service area.";
+    }
+
+    if (data?.code === "VALIDATION_ERROR") {
+      return "Please check your order details and try again.";
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+
+    if (err?.message) {
+      return err.message;
+    }
+
+    return "Failed to place order.";
+  };
+
   const handleOrder = async () => {
     if (!selectedService) return;
 
@@ -137,7 +159,7 @@ export default function ResidentHome() {
         longitude: null,
       });
     } catch (err) {
-      showToast(err.message || "Failed to place order.", "error");
+      showToast(getOrderErrorMessage(err), "error");
     } finally {
       setOrderLoading(false);
     }

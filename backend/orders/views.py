@@ -1,9 +1,11 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
 
 from core.responses import success_response, created_response, error_response
-from core.permissions import IsResident, IsProvider
+from core.permissions import IsResident
+from core.utils import calculate_distance_km
 from .models import Order
 from .serializers import OrderSerializer, OrderCreateSerializer, OrderStatusUpdateSerializer
 
@@ -16,8 +18,40 @@ class OrderCreateView(APIView):
         serializer = OrderCreateSerializer(
             data=request.data, context={"request": request}
         )
+
         if not serializer.is_valid():
-            return error_response("VALIDATION_ERROR", "Invalid data.", details=serializer.errors)
+            return error_response(
+                "VALIDATION_ERROR",
+                "Invalid data.",
+                details=serializer.errors,
+            )
+
+        service = serializer.validated_data.get("service")
+
+        if service and service.provider:
+            provider = service.provider
+
+            order_latitude = serializer.validated_data.get("latitude")
+            order_longitude = serializer.validated_data.get("longitude")
+
+            if (
+                provider.latitude
+                and provider.longitude
+                and order_latitude
+                and order_longitude
+            ):
+                distance = calculate_distance_km(
+                    order_latitude,
+                    order_longitude,
+                    provider.latitude,
+                    provider.longitude,
+                )
+
+                if distance > settings.MAX_SERVICE_DISTANCE_KM:
+                    return error_response(
+                        "PROVIDER_TOO_FAR",
+                        f"This provider is more than {settings.MAX_SERVICE_DISTANCE_KM} km away.",
+                    )
 
         order = serializer.save()
         return created_response(
@@ -81,7 +115,6 @@ class OrderStatusUpdateView(APIView):
 
         new_status = request.data.get("status")
 
-        # Validate status transitions
         valid_transitions = {
             "provider": ["accepted", "rejected", "in_progress", "completed"],
             "resident": ["cancelled"],

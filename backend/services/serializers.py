@@ -11,6 +11,18 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name_en", read_only=True)
     provider_name = serializers.CharField(source="provider.business_name", read_only=True)
+    provider_latitude = serializers.DecimalField(
+        source="provider.latitude",
+        max_digits=9,
+        decimal_places=6,
+        read_only=True,
+    )
+    provider_longitude = serializers.DecimalField(
+        source="provider.longitude",
+        max_digits=9,
+        decimal_places=6,
+        read_only=True,
+    )
 
     class Meta:
         model = Service
@@ -18,6 +30,8 @@ class ServiceSerializer(serializers.ModelSerializer):
             "id",
             "provider",
             "provider_name",
+            "provider_latitude",
+            "provider_longitude",
             "category",
             "category_name",
             "name",
