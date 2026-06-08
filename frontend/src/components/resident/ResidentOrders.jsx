@@ -29,6 +29,12 @@ export default function ResidentOrders() {
   const [error, setError] = useState("");
   const [cancellingId, setCancellingId] = useState(null);
 
+  const [reviewOrder, setReviewOrder] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewedOrders, setReviewedOrders] = useState([]);
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -61,6 +67,59 @@ export default function ResidentOrders() {
     }
   };
 
+  const openReviewModal = (order) => {
+    setReviewOrder(order);
+    setRating(5);
+    setComment("");
+  };
+
+  const closeReviewModal = () => {
+    setReviewOrder(null);
+    setRating(5);
+    setComment("");
+  };
+
+  const getReviewErrorMessage = (err) => {
+    const data = err?.response?.data;
+
+    if (data?.code === "REVIEW_ALREADY_EXISTS") {
+      return "You have already reviewed this order.";
+    }
+
+    if (data?.code === "ORDER_NOT_COMPLETED") {
+      return "You can review the provider only after the order is completed.";
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+
+    return "Failed to submit review.";
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewOrder) return;
+
+    setSubmittingReview(true);
+
+    try {
+      await api.createReview({
+        order: reviewOrder.id,
+        provider: reviewOrder.provider,
+        rating,
+        comment,
+      });
+
+      setReviewedOrders(prev => [...prev, reviewOrder.id]);
+      closeReviewModal();
+      alert("Review submitted successfully.");
+    } catch (err) {
+      alert(getReviewErrorMessage(err));
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   return (
     <div className="ro-root">
       <header className="ro-header">
@@ -70,7 +129,6 @@ export default function ResidentOrders() {
       </header>
 
       <div className="ro-container">
-        {/* Filter tabs */}
         <div className="ro-filters">
           {["all", "pending", "accepted", "in_progress", "completed", "cancelled"].map(s => (
             <button
@@ -84,7 +142,13 @@ export default function ResidentOrders() {
         </div>
 
         {loading && <div className="ro-empty"><p>Loading orders…</p></div>}
-        {!loading && error && <div className="ro-empty"><p style={{ color: "#ef4444" }}>{error}</p><button className="ro-browse-btn" onClick={fetchOrders}>Retry</button></div>}
+
+        {!loading && error && (
+          <div className="ro-empty">
+            <p style={{ color: "#ef4444" }}>{error}</p>
+            <button className="ro-browse-btn" onClick={fetchOrders}>Retry</button>
+          </div>
+        )}
 
         {!loading && !error && filtered.length === 0 && (
           <div className="ro-empty">
@@ -155,11 +219,125 @@ export default function ResidentOrders() {
                 </div>
               )}
 
+              {order.status === "completed" && !reviewedOrders.includes(order.id) && (
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button
+                    className="ro-browse-btn"
+                    style={{ background: "#f59e0b", color: "#fff", flex: 1 }}
+                    onClick={() => openReviewModal(order)}
+                  >
+                    ⭐ Rate Provider
+                  </button>
+                </div>
+              )}
+
+              {order.status === "completed" && reviewedOrders.includes(order.id) && (
+                <div style={{ marginTop: 8, color: "#2D6A4F", fontWeight: 600 }}>
+                  ✅ Review submitted
+                </div>
+              )}
+
               <div className="ro-card-id">Order #{order.order_number || order.id}</div>
             </div>
           ))}
         </div>
       </div>
+
+      {reviewOrder && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 16,
+          }}
+          onClick={closeReviewModal}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 24,
+              width: "100%",
+              maxWidth: 420,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginTop: 0, color: "#1f2937" }}>Rate Provider</h2>
+            <p style={{ color: "#6b7280", marginBottom: 16 }}>
+              {reviewOrder.provider_name || "Provider"}
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                Rating
+              </label>
+              <div style={{ display: "flex", gap: 6, fontSize: 32 }}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontSize: 32,
+                      color: star <= rating ? "#f59e0b" : "#d1d5db",
+                    }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                Comment
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Write your feedback..."
+                rows={4}
+                style={{
+                  width: "100%",
+                  border: "1px solid #d1d5db",
+                  borderRadius: 10,
+                  padding: 12,
+                  resize: "vertical",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                className="ro-browse-btn"
+                style={{ background: "#e5e7eb", color: "#374151", flex: 1 }}
+                onClick={closeReviewModal}
+                disabled={submittingReview}
+              >
+                Cancel
+              </button>
+              <button
+                className="ro-browse-btn"
+                style={{ background: "#2D6A4F", color: "#fff", flex: 1 }}
+                onClick={handleSubmitReview}
+                disabled={submittingReview}
+              >
+                {submittingReview ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
