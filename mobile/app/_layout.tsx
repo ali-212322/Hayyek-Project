@@ -1,24 +1,68 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { ActivityIndicator, View } from 'react-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useFonts } from 'expo-font';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import {
+  ReemKufi_400Regular,
+  ReemKufi_600SemiBold,
+  ReemKufi_700Bold,
+} from '@expo-google-fonts/reem-kufi';
+
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+
+import {
+  DMSerifDisplay_400Regular,
+  DMSerifDisplay_400Regular_Italic,
+} from '@expo-google-fonts/dm-serif-display';
+
+import { AuthProvider } from '../src/features/auth/context/AuthContext';
+import { colors } from '../src/shared/constants/colors';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [fontsLoaded] = useFonts({
+    ReemKufi_400Regular,
+    ReemKufi_600SemiBold,
+    ReemKufi_700Bold,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    DMSerifDisplay_400Regular,
+    DMSerifDisplay_400Regular_Italic,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.cream,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.gd} />
+      </View>
+    );
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="auth/login" />
+        <Stack.Screen name="auth/register" />
+        <Stack.Screen name="resident/home" />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+
+      <StatusBar style="dark" />
+    </AuthProvider>
   );
 }
