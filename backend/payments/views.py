@@ -32,8 +32,6 @@ class PaymentCreateView(APIView):
         payment.transaction_id = f"TXN-{payment.id}-MOCK"
         payment.save(update_fields=["status", "transaction_id"])
 
-        payment.order.status = "accepted"
-        payment.order.save(update_fields=["status"])
 
         return created_response(
             data=PaymentSerializer(payment).data,
@@ -147,8 +145,6 @@ class MoyasarPaymentVerifyView(APIView):
             },
         )
 
-        order.status = "accepted"
-        order.save(update_fields=["status"])
 
         response_serializer = PaymentSerializer(payment)
 
