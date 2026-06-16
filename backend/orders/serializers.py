@@ -6,16 +6,17 @@ class OrderSerializer(serializers.ModelSerializer):
     resident_name = serializers.CharField(source="resident.full_name", read_only=True)
     provider_name = serializers.CharField(source="provider.business_name", read_only=True)
     service_name = serializers.CharField(source="service.name", read_only=True)
+    payment_status = serializers.CharField(source="payment.status", read_only=True, default=None)
 
     class Meta:
         model = Order
         fields = [
             "id", "order_number", "resident", "resident_name",
             "provider", "provider_name", "service", "service_name",
-            "status", "notes", "address", "latitude", "longitude",
+            "status", "payment_status", "notes", "address", "latitude", "longitude",
             "scheduled_at", "total_price", "created_at",
         ]
-        read_only_fields = ["id", "order_number", "resident", "status", "created_at"]
+        read_only_fields = ["id", "order_number", "resident", "status", "payment_status", "created_at"]
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):

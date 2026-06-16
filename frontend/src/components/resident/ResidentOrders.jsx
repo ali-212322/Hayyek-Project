@@ -193,7 +193,7 @@ export default function ResidentOrders() {
                 <div className="ro-row"><span>🗓 Created</span><span>{new Date(order.created_at).toLocaleDateString()}</span></div>
               </div>
 
-              {order.status === "pending" && (
+              {order.status === "pending" && order.payment_status !== "paid" && (
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                   <button
                     className="ro-browse-btn"
