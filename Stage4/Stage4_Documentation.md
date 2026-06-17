@@ -431,7 +431,7 @@ Render
 
 ## Database
 
-PostgreSQL
+MySQL
 
 ## Deployment Status
 
