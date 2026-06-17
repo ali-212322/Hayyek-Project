@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker, Circle } from "@react-google-maps/api";
 import api from "../../services/api";
 import useAuth from "../../hooks/useAuth";
 import "./ResidentHome.css";
 
 const MAP_CENTER = { lat: 24.7136, lng: 46.6753 };
+const PROVIDER_COVERAGE_RADIUS_METERS = 10000;
 
 export default function ResidentHome() {
   const navigate = useNavigate();
@@ -177,6 +178,14 @@ export default function ResidentHome() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+
+  const selectedProviderPosition =
+    selectedService?.provider_latitude && selectedService?.provider_longitude
+      ? {
+          lat: Number(selectedService.provider_latitude),
+          lng: Number(selectedService.provider_longitude),
+        }
+      : null;
 
   return (
     <div className="rh-root">
@@ -365,11 +374,32 @@ export default function ResidentHome() {
                     borderRadius: "10px",
                     marginBottom: "8px",
                   }}
-                  center={markerPos || MAP_CENTER}
-                  zoom={markerPos ? 15 : 11}
+                  center={selectedProviderPosition || markerPos || MAP_CENTER}
+                  zoom={12}
                   onClick={onMapClick}
                 >
-                  {markerPos && <Marker position={markerPos} />}
+                  {selectedProviderPosition && (
+                    <>
+                      <Circle
+                        center={selectedProviderPosition}
+                        radius={PROVIDER_COVERAGE_RADIUS_METERS}
+                        options={{
+                          fillColor: "#2D6A4F",
+                          fillOpacity: 0.12,
+                          strokeColor: "#2D6A4F",
+                          strokeOpacity: 0.7,
+                          strokeWeight: 2,
+                        }}
+                      />
+
+                      <Marker
+                        position={selectedProviderPosition}
+                        label="P"
+                      />
+                    </>
+                  )}
+
+                  {markerPos && <Marker position={markerPos} label="You" />}
                 </GoogleMap>
               ) : (
                 <div
@@ -386,6 +416,19 @@ export default function ResidentHome() {
                 >
                   Loading map...
                 </div>
+              )}
+
+              {selectedProviderPosition && (
+                <p
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "#2D6A4F",
+                    marginBottom: 8,
+                    fontWeight: 600,
+                  }}
+                >
+                  Green circle shows the provider coverage area within 10 km.
+                </p>
               )}
 
               {markerPos && (
