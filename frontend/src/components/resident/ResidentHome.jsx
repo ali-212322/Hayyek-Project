@@ -389,6 +389,7 @@ export default function ResidentHome() {
                           strokeColor: "#2D6A4F",
                           strokeOpacity: 0.7,
                           strokeWeight: 2,
+                          clickable: false,
                         }}
                       />
 
