@@ -64,15 +64,15 @@ function ProviderOrders() {
   return (
     <div className="po-root">
       <header className="po-header">
-        <button className="po-back" onClick={() => navigate("/provider")}>← Back to dashboard</button>
+        <button className="po-back" onClick={() => navigate("/provider")}> Back to dashboard</button>
         <div className="po-title">Provider Orders</div>
-        <button className="po-back" onClick={fetchOrders} style={{ visibility: loading ? "hidden" : "visible" }}>↻ Refresh</button>
+        <button className="po-back" onClick={fetchOrders} style={{ visibility: loading ? "hidden" : "visible" }}> Refresh</button>
       </header>
 
       <main className="po-container">
         {error && (
           <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "10px", marginBottom: "1rem" }}>
-            ⚠️ {error} <button onClick={fetchOrders} style={{ marginLeft: "8px", color: "#991b1b", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Retry</button>
+             {error} <button onClick={fetchOrders} style={{ marginLeft: "8px", color: "#991b1b", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Retry</button>
           </div>
         )}
 
@@ -93,7 +93,7 @@ function ProviderOrders() {
 
         {!loading && filteredOrders.length === 0 && (
           <div className="po-empty">
-            <p>📭</p>
+            <p>No Orders</p>
             <p>No orders found for this filter.</p>
           </div>
         )}

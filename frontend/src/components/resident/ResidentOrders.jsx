@@ -123,7 +123,7 @@ export default function ResidentOrders() {
   return (
     <div className="ro-root">
       <header className="ro-header">
-        <button className="ro-back" onClick={() => navigate("/resident")}>← Back</button>
+        <button className="ro-back" onClick={() => navigate("/resident")}> Back</button>
         <span className="ro-title">My Orders</span>
         <div style={{ width: 60 }} />
       </header>
@@ -152,7 +152,7 @@ export default function ResidentOrders() {
 
         {!loading && !error && filtered.length === 0 && (
           <div className="ro-empty">
-            <p>🗂️</p>
+            <p></p>
             <p>No orders found.</p>
             <button className="ro-browse-btn" onClick={() => navigate("/resident")}>Browse Services</button>
           </div>
@@ -179,18 +179,18 @@ export default function ResidentOrders() {
 
               <div className="ro-card-rows">
                 {order.address && (
-                  <div className="ro-row"><span>📍 Address</span><span>{order.address}</span></div>
+                  <div className="ro-row"><span> Address</span><span>{order.address}</span></div>
                 )}
                 {order.scheduled_at && (
                   <div className="ro-row"><span>📅 Scheduled</span><span>{new Date(order.scheduled_at).toLocaleString()}</span></div>
                 )}
                 {order.total_price != null && (
-                  <div className="ro-row"><span>💰 Price</span><span>SAR {order.total_price}</span></div>
+                  <div className="ro-row"><span> Price</span><span>SAR {order.total_price}</span></div>
                 )}
                 {order.notes && (
-                  <div className="ro-row"><span>📝 Notes</span><span>{order.notes}</span></div>
+                  <div className="ro-row"><span> Notes</span><span>{order.notes}</span></div>
                 )}
-                <div className="ro-row"><span>🗓 Created</span><span>{new Date(order.created_at).toLocaleDateString()}</span></div>
+                <div className="ro-row"><span> Created</span><span>{new Date(order.created_at).toLocaleDateString()}</span></div>
               </div>
 
               {order.status === "pending" && order.payment_status !== "paid" && (
@@ -226,14 +226,14 @@ export default function ResidentOrders() {
                     style={{ background: "#f59e0b", color: "#fff", flex: 1 }}
                     onClick={() => openReviewModal(order)}
                   >
-                    ⭐ Rate Provider
+                     Rate Provider
                   </button>
                 </div>
               )}
 
               {order.status === "completed" && reviewedOrders.includes(order.id) && (
                 <div style={{ marginTop: 8, color: "#2D6A4F", fontWeight: 600 }}>
-                  ✅ Review submitted
+                   Review submitted
                 </div>
               )}
 
